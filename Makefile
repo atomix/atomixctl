@@ -8,4 +8,4 @@ all: build
 
 build:
 	go build -o build/_output/bin/atomixctl ./cmd/atomixctl
-	docker build . -f build/atomixctl/Dockerfile -t atomix/atomixctl:latest
+	docker build . -f build/Dockerfile -t atomix/atomixctl:latest
