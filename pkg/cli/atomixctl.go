@@ -1,8 +1,8 @@
-package atomixctl
+package cli
 
 import (
 	"fmt"
-	"github.com/atomix/atomixctl/pkg/atomixctl/command"
+	"github.com/atomix/atomix-cli/pkg/cli/command"
 	"os"
 )
 

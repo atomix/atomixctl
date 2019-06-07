@@ -7,7 +7,7 @@ import (
 
 func GetRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "atomixctl",
+		Use:   "atomix",
 		Short: "Atomix command line client",
 	}
 

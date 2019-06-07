@@ -6,11 +6,11 @@ RUN addgroup -S atomix && adduser -S -G atomix atomix
 USER atomix
 WORKDIR /home/atomix
 
-ADD build/_output/bin/atomixctl /usr/local/bin/atomixctl
+ADD build/_output/bin/atomix /usr/local/bin/atomix
 
-RUN atomixctl init && \
+RUN atomix init && \
     cp /etc/profile /home/atomix/.bashrc && \
-    atomixctl completion bash > /home/atomix/.atomix/bash_completion.sh && \
+    atomix completion bash > /home/atomix/.atomix/bash_completion.sh && \
     echo "source /home/atomix/.atomix/bash_completion.sh" >> /home/atomix/.bashrc
 
 ENTRYPOINT ["/bin/bash"]

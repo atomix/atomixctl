@@ -4,8 +4,10 @@ export CGO_ENABLED=0
 
 .PHONY: build
 
-all: build
+all: build docker
 
 build:
-	go build -o build/_output/bin/atomixctl ./cmd/atomixctl
-	docker build . -f build/Dockerfile -t atomix/atomixctl:latest
+	go build -o build/_output/bin/atomix ./cmd/cli
+
+docker:
+	docker build . -f build/Dockerfile -t atomix/atomix-cli:latest
