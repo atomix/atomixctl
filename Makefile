@@ -7,7 +7,7 @@ export CGO_ENABLED=0
 all: build docker
 
 build:
-	go build -o build/_output/bin/atomix ./cmd/cli
+	go build -o build/_output/bin/atomix ./cmd/atomix
 
 docker:
 	docker build . -f build/Dockerfile -t atomix/atomix-cli:latest
