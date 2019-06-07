@@ -26,6 +26,7 @@ func GetRootCommand() *cobra.Command {
 
 	cmd.AddCommand(newInitCommand())
 	cmd.AddCommand(newCompletionCommand())
+	cmd.AddCommand(newControllerCommand())
 	cmd.AddCommand(newConfigCommand())
 	cmd.AddCommand(newGroupCommand())
 	cmd.AddCommand(newCounterCommand())

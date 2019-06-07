@@ -26,6 +26,20 @@ the desired shell argument:
 source <(atomix completion bash)
 ```
 
+The CLI can be used to deploy and connect to Atomix controllers. To deploy a Kubernetes
+controller, pipe the output of `atomix controller k8s deploy` to `kubectl`:
+
+```bash
+> atomix controller k8s deploy -s atomix-controller -n kube-system | kubectl apply -f -
+```
+
+To connect the CLI to an existing Kubernetes controller, use `k8s connect`:
+
+```bash
+> atomix controller k8s connect
+atomix-controller.kube-system.svc.cluster.local:5679
+```
+
 For containerized environments like Kubernetes, a Docker image is provided. The image
 can be build by simply running:
 
@@ -44,6 +58,21 @@ a single pod deployment:
 ```
 
 This command will run the CLI image as a `Deployment` and log into the bash shell.
+Once you've joined the container, be sure to connect to the Atomix controller by running:
+
+```bash
+> atomix controller k8s connect
+atomix-controller.kube-system.svc.cluster.local:5679
+```
+
+Once connected, you should be able to see the partition groups deployed in the
+Kubernetes cluster:
+
+```bash
+> atomix groups
+...
+```
+
 Once the shell is exited, the `Deployment` will be deleted.
 
 [Atomix 4]: https://github.com/atomix/atomix/tree/4.0
