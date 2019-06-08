@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:600493c1c913d8b89c46adbd616a3303e128fb330c1c0967364c721ea9ee32d2"
+  digest = "1:fa1ead42efc2b1bd2d10572c29ccff11f2603eab3963f4d90c6870d3cd463730"
   name = "github.com/atomix/atomix-go-client"
   packages = [
     "pkg/client",
@@ -28,7 +28,7 @@
     "proto/atomix/set",
   ]
   pruneopts = "UT"
-  revision = "56c649e63cbc63a98a98df8eab354953590354fa"
+  revision = "8e3c0ea830489beab0811520e59cccea1f88f53e"
 
 [[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
