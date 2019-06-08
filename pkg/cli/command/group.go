@@ -7,23 +7,29 @@ import (
 	"github.com/atomix/atomix-go-client/pkg/client/protocol/log"
 	"github.com/atomix/atomix-go-client/pkg/client/protocol/raft"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"os"
 	"text/tabwriter"
 )
 
 func newGroupCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "group [get,create,delete]",
-		Aliases: []string{
-			"groups",
-		},
+		Use:   "group [set,get,create,delete]",
 		Short: "Manage partition groups and partitions",
-		Run:   runGroupsCommand,
 	}
+	cmd.AddCommand(newGroupSetCommand())
 	cmd.AddCommand(newGroupGetCommand())
 	cmd.AddCommand(newGroupCreateCommand())
 	cmd.AddCommand(newGroupDeleteCommand())
 	return cmd
+}
+
+func newGroupsCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "groups",
+		Short: "Get a list of partition groups",
+		Run:   runGroupsCommand,
+	}
 }
 
 func printGroups(groups []*client.PartitionGroup) {
@@ -54,16 +60,40 @@ func runGroupsCommand(cmd *cobra.Command, args []string) {
 	}
 }
 
+func newGroupSetCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:  "set <group>",
+		Args: cobra.ExactArgs(1),
+		Run:  runGroupSetCommand,
+	}
+}
+
+func runGroupSetCommand(cmd *cobra.Command, args []string) {
+	viper.Set("group", args[0])
+	if err := viper.WriteConfig(); err != nil {
+		ExitWithError(ExitError, err)
+	} else {
+		value := viper.Get("group")
+		ExitWithOutput(value)
+	}
+}
+
 func newGroupGetCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:  "get <group>",
-		Args: cobra.ExactArgs(1),
+		Use:  "get [group]>",
+		Args: cobra.MaximumNArgs(1),
 		Run:  runGroupGetCommand,
 	}
 }
 
 func runGroupGetCommand(cmd *cobra.Command, args []string) {
-	name := args[0]
+	var name string
+	if len(args) == 0 {
+		name = viper.GetString("group")
+	} else {
+		name = args[0]
+	}
+
 	client := newClientFromGroup(name)
 	group, err := client.GetGroup(newTimeoutContext(), getGroupName(name))
 	if err != nil {
