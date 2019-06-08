@@ -82,20 +82,28 @@ func getGroupName(name string) string {
 	return nameParts[len(nameParts)-1]
 }
 
+func setClientController(controller string) error {
+	return setConfig("controller", controller)
+}
+
 func getClientController() string {
-	return viper.GetString("controller")
+	return getConfig("controller")
 }
 
 func getClientNamespace() string {
-	return viper.GetString("namespace")
+	return getConfig("namespace")
+}
+
+func setClientGroup(group string) error {
+	return setConfig("group", group)
 }
 
 func getClientGroup() string {
-	return viper.GetString("group")
+	return getConfig("group")
 }
 
 func getClientApp() string {
-	return viper.GetString("app")
+	return getConfig("app")
 }
 
 func getPrimitiveApp(name string) string {

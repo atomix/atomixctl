@@ -15,42 +15,48 @@ const (
 
 func newControllerCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "controller <type>",
+		Use:   "controller {set,get,deploy}",
 		Short: "Deploy and manage the Atomix controller",
-		Run:   runControllerCommand,
+		Run:   runControllerGetCommand,
 	}
-	cmd.AddCommand(newControllerKubernetesCommand())
+	cmd.AddCommand(newControllerSetCommand())
+	cmd.AddCommand(newControllerGetCommand())
+	cmd.AddCommand(newControllerDeployCommand())
 	return cmd
 }
 
-func runControllerCommand(cmd *cobra.Command, args []string) {
-	controller := getClientController()
-	ExitWithOutput(controller)
+func newControllerSetCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set <address>",
+		Short: "Set the controller address",
+		Args:  cobra.ExactArgs(1),
+		Run:   runControllerSetCommand,
+	}
+	cmd.AddCommand(newControllerSetKubernetesCommand())
+	return cmd
 }
 
-func newControllerKubernetesCommand() *cobra.Command {
+func runControllerSetCommand(cmd *cobra.Command, args []string) {
+	if err := setClientController(args[0]); err != nil {
+		ExitWithError(ExitError, err)
+	} else {
+		ExitWithOutput(getClientController())
+	}
+}
+
+func newControllerSetKubernetesCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "kubernetes [connect,deploy]",
+		Use:     "kubernetes",
 		Aliases: []string{"kube", "k8s"},
-		Short: "Deploy and manage a Kubernetes controller",
+		Short:   "Configure a Kubernetes controller",
+		Run:     runControllerSetKubernetesCommand,
 	}
-	cmd.AddCommand(newControllerKubernetesConnectCommand())
-	cmd.AddCommand(newControllerKubernetesDeployCommand())
+	cmd.Flags().String("namespace", "kube-system", "the controller namespace")
+	cmd.Flags().String("name", "atomix-controller", "the controller service name")
 	return cmd
 }
 
-func newControllerKubernetesConnectCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use: "connect",
-		Short: "Connect to a Kubernetes controller",
-		Run: runControllerConnectKubernetesCommand,
-	}
-	cmd.Flags().String("namespace",  "kube-system", "the namespace in which to deploy the controller")
-	cmd.Flags().String("name", "atomix-controller", "the controller name")
-	return cmd
-}
-
-func runControllerConnectKubernetesCommand(cmd *cobra.Command, args []string) {
+func runControllerSetKubernetesCommand(cmd *cobra.Command, args []string) {
 	namespace, _ := cmd.Flags().GetString("namespace")
 	name, _ := cmd.Flags().GetString("name")
 	service := fmt.Sprintf("%s.%s.svc.cluster.local:5679", name, namespace)
@@ -63,9 +69,31 @@ func runControllerConnectKubernetesCommand(cmd *cobra.Command, args []string) {
 	}
 }
 
-func newControllerKubernetesDeployCommand() *cobra.Command {
+func newControllerGetCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:     "deploy",
+		Use:   "get",
+		Short: "Get the controller address",
+		Run:   runControllerGetCommand,
+	}
+}
+
+func runControllerGetCommand(cmd *cobra.Command, args []string) {
+	ExitWithOutput(getClientController())
+}
+
+func newControllerDeployCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "deploy",
+		Short: "Deploy a controller",
+	}
+	cmd.AddCommand(newControllerDeployKubernetesCommand())
+	return cmd
+}
+
+func newControllerDeployKubernetesCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:     "kubernetes",
+		Aliases: []string{"kube", "k8s"},
 		Short:   "Deploy a Kubernetes controller",
 		Run:     runControllerDeployKubernetesCommand,
 	}

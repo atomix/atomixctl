@@ -7,7 +7,6 @@ import (
 	"github.com/atomix/atomix-go-client/pkg/client/protocol/log"
 	"github.com/atomix/atomix-go-client/pkg/client/protocol/raft"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"os"
 	"text/tabwriter"
 )
@@ -16,6 +15,7 @@ func newGroupCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "group [set,get,create,delete]",
 		Short: "Manage partition groups and partitions",
+		Run:   runGroupGetCommand,
 	}
 	cmd.AddCommand(newGroupSetCommand())
 	cmd.AddCommand(newGroupGetCommand())
@@ -69,12 +69,10 @@ func newGroupSetCommand() *cobra.Command {
 }
 
 func runGroupSetCommand(cmd *cobra.Command, args []string) {
-	viper.Set("group", args[0])
-	if err := viper.WriteConfig(); err != nil {
+	if err := setClientGroup(args[0]); err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		value := viper.Get("group")
-		ExitWithOutput(value)
+		ExitWithOutput(getClientGroup())
 	}
 }
 
@@ -89,7 +87,7 @@ func newGroupGetCommand() *cobra.Command {
 func runGroupGetCommand(cmd *cobra.Command, args []string) {
 	var name string
 	if len(args) == 0 {
-		name = viper.GetString("group")
+		name = getClientGroup()
 	} else {
 		name = args[0]
 	}

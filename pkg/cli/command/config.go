@@ -34,10 +34,10 @@ func newConfigGetCommand() *cobra.Command {
 		"app",
 	}
 	return &cobra.Command{
-		Use:  "get <key>",
-		Args: cobra.ExactArgs(1),
+		Use:       "get <key>",
+		Args:      cobra.ExactArgs(1),
 		ValidArgs: validArgs,
-		Run:  runConfigGetCommand,
+		Run:       runConfigGetCommand,
 	}
 }
 
@@ -54,10 +54,10 @@ func newConfigSetCommand() *cobra.Command {
 		"app",
 	}
 	return &cobra.Command{
-		Use:  "set <key> <value>",
-		Args: cobra.ExactArgs(2),
+		Use:       "set <key> <value>",
+		Args:      cobra.ExactArgs(2),
 		ValidArgs: validArgs,
-		Run:  runConfigSetCommand,
+		Run:       runConfigSetCommand,
 	}
 }
 
@@ -79,10 +79,10 @@ func newConfigDeleteCommand() *cobra.Command {
 		"app",
 	}
 	return &cobra.Command{
-		Use:  "delete <key>",
-		Args: cobra.ExactArgs(1),
+		Use:       "delete <key>",
+		Args:      cobra.ExactArgs(1),
 		ValidArgs: validArgs,
-		Run:  runConfigDeleteCommand,
+		Run:       runConfigDeleteCommand,
 	}
 }
 
@@ -130,6 +130,15 @@ func newInitCommand() *cobra.Command {
 			}
 		},
 	}
+}
+
+func setConfig(key string, value string) error {
+	viper.Set(key, value)
+	return viper.WriteConfig()
+}
+
+func getConfig(key string) string {
+	return viper.GetString(key)
 }
 
 func initConfig() {
