@@ -2,7 +2,7 @@
 
 This project provides a CLI for [Atomix 4].
 
-![Atomix CLI](https://media.giphy.com/media/JR7It5AxK2rPbP6TI0/giphy.gif)
+![Atomix CLI](https://media.giphy.com/media/cImqHbP1Bt2u5ZTVGg/giphy.gif)
 
 To install the CLI, run:
 
