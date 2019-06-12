@@ -3,7 +3,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:fa1ead42efc2b1bd2d10572c29ccff11f2603eab3963f4d90c6870d3cd463730"
+  digest = "1:7450766847240d78017795fe5e5cf667e5ed38eef33050a06f27bfec7e6d7a3e"
   name = "github.com/atomix/atomix-go-client"
   packages = [
     "pkg/client",
@@ -12,9 +12,6 @@
     "pkg/client/election",
     "pkg/client/lock",
     "pkg/client/primitive",
-    "pkg/client/protocol",
-    "pkg/client/protocol/log",
-    "pkg/client/protocol/raft",
     "pkg/client/session",
     "pkg/client/set",
     "pkg/client/util",
@@ -24,11 +21,12 @@
     "proto/atomix/headers",
     "proto/atomix/lock",
     "proto/atomix/map",
-    "proto/atomix/partition",
+    "proto/atomix/protocols/log",
+    "proto/atomix/protocols/raft",
     "proto/atomix/set",
   ]
   pruneopts = "UT"
-  revision = "8e3c0ea830489beab0811520e59cccea1f88f53e"
+  revision = "4fbee0d347fef2bdf8f303a0db483b2ccbb99bd7"
 
 [[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
@@ -303,10 +301,11 @@
     "github.com/atomix/atomix-go-client/pkg/client/counter",
     "github.com/atomix/atomix-go-client/pkg/client/election",
     "github.com/atomix/atomix-go-client/pkg/client/lock",
-    "github.com/atomix/atomix-go-client/pkg/client/protocol",
-    "github.com/atomix/atomix-go-client/pkg/client/protocol/log",
-    "github.com/atomix/atomix-go-client/pkg/client/protocol/raft",
     "github.com/atomix/atomix-go-client/pkg/client/set",
+    "github.com/atomix/atomix-go-client/proto/atomix/protocols/log",
+    "github.com/atomix/atomix-go-client/proto/atomix/protocols/raft",
+    "github.com/golang/protobuf/proto",
+    "github.com/golang/protobuf/ptypes/any",
     "github.com/mitchellh/go-homedir",
     "github.com/spf13/cobra",
     "github.com/spf13/viper",

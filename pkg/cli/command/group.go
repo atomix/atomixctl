@@ -3,9 +3,10 @@ package command
 import (
 	"fmt"
 	"github.com/atomix/atomix-go-client/pkg/client"
-	"github.com/atomix/atomix-go-client/pkg/client/protocol"
-	"github.com/atomix/atomix-go-client/pkg/client/protocol/log"
-	"github.com/atomix/atomix-go-client/pkg/client/protocol/raft"
+	"github.com/atomix/atomix-go-client/proto/atomix/protocols/log"
+	"github.com/atomix/atomix-go-client/proto/atomix/protocols/raft"
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/any"
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
@@ -37,7 +38,7 @@ func printGroups(groups []*client.PartitionGroup) {
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	fmt.Fprintln(writer, "NAME\tPROTOCOL\tPARTITIONS\tSIZE")
 	for _, group := range groups {
-		fmt.Fprintln(writer, fmt.Sprintf("%s\t%s\t%d\t%d", group.Protocol, group.Name, group.Partitions, group.PartitionSize))
+		fmt.Fprintln(writer, fmt.Sprintf("%s\t%s\t%d\t%d", group.Name, group.Protocol, group.Partitions, group.PartitionSize))
 	}
 	writer.Flush()
 }
@@ -122,12 +123,21 @@ func runGroupCreateCommand(cmd *cobra.Command, args []string) {
 	partitionSize, _ := cmd.Flags().GetInt("partitionSize")
 	protocolName, _ := cmd.Flags().GetString("protocol")
 
-	var protocolConfig protocol.Protocol
-	switch (protocolName) {
+	var protocol proto.Message
+	switch protocolName {
 	case "raft":
-		protocolConfig = &raft.Protocol{}
+		protocol = &atomix_protocols_raft.RaftProtocol{}
 	case "log":
-		protocolConfig = &log.Protocol{}
+		protocol = &atomix_protocols_log.LogProtocol{}
+	}
+
+	bytes, err := proto.Marshal(protocol)
+	if err != nil {
+		ExitWithError(ExitError, err)
+	}
+	protocolConfig := any.Any{
+		TypeUrl: "type.googleapis.com/" + proto.MessageName(protocol),
+		Value:   bytes,
 	}
 
 	group, err := client.CreateGroup(newTimeoutContext(), getGroupName(name), partitions, partitionSize, protocolConfig)
