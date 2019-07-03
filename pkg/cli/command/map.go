@@ -1,6 +1,7 @@
 package command
 
 import (
+	"context"
 	"fmt"
 	"github.com/atomix/atomix-go-client/pkg/client/map_"
 	"github.com/spf13/cobra"
@@ -16,6 +17,7 @@ func newMapCommand() *cobra.Command {
 	cmd.AddCommand(newMapGetCommand())
 	cmd.AddCommand(newMapPutCommand())
 	cmd.AddCommand(newMapRemoveCommand())
+	cmd.AddCommand(newMapKeysCommand())
 	cmd.AddCommand(newMapSizeCommand())
 	cmd.AddCommand(newMapClearCommand())
 	cmd.AddCommand(newMapDeleteCommand())
@@ -136,6 +138,26 @@ func runMapRemoveCommand(cmd *cobra.Command, args []string) {
 		ExitWithOutput(value.String())
 	} else {
 		ExitWithOutput(nil)
+	}
+}
+
+func newMapKeysCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:  "keys <map>",
+		Args: cobra.ExactArgs(1),
+		Run:  runMapKeysCommand,
+	}
+}
+
+func runMapKeysCommand(cmd *cobra.Command, args []string) {
+	m := newMapFromName(args[0])
+	ch := make(chan *map_.KeyValue)
+	err := m.Entries(context.TODO(), ch)
+	if err != nil {
+		ExitWithError(ExitError, err)
+	}
+	for kv := range ch {
+		println(fmt.Sprintf("%v", kv))
 	}
 }
 

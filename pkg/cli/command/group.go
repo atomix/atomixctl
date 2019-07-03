@@ -6,7 +6,6 @@ import (
 	"github.com/atomix/atomix-go-client/proto/atomix/protocols/log"
 	"github.com/atomix/atomix-go-client/proto/atomix/protocols/raft"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
@@ -131,16 +130,7 @@ func runGroupCreateCommand(cmd *cobra.Command, args []string) {
 		protocol = &atomix_protocols_log.LogProtocol{}
 	}
 
-	bytes, err := proto.Marshal(protocol)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	protocolConfig := any.Any{
-		TypeUrl: "type.googleapis.com/" + proto.MessageName(protocol),
-		Value:   bytes,
-	}
-
-	group, err := client.CreateGroup(newTimeoutContext(), getGroupName(name), partitions, partitionSize, protocolConfig)
+	group, err := client.CreateGroup(newTimeoutContext(), getGroupName(name), partitions, partitionSize, protocol)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
