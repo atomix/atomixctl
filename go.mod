@@ -3,7 +3,7 @@ module github.com/atomix/atomix-cli
 require (
 	cloud.google.com/go v0.41.0 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
-	github.com/atomix/atomix-go-client v0.0.0-20190706001416-30f86a6b28e9
+	github.com/atomix/atomix-go-client v0.0.0-20190706023513-51518f9bf013
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/elazarl/goproxy v0.0.0-20190703090003-6125c262ffb0 // indirect
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect

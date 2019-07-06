@@ -22,6 +22,8 @@ github.com/atomix/atomix-go-client v0.0.0-20190703201712-3cb04ccd7c79 h1:gcDmKF9
 github.com/atomix/atomix-go-client v0.0.0-20190703201712-3cb04ccd7c79/go.mod h1:N8U2hD9J65jfukKa2LSf53oVFGkcNFyhW9mcEsm08zs=
 github.com/atomix/atomix-go-client v0.0.0-20190706001416-30f86a6b28e9 h1:dWSLYnS2B4IOfnZS5sa5tNaV6N6P80Huf/qvbPy6mGg=
 github.com/atomix/atomix-go-client v0.0.0-20190706001416-30f86a6b28e9/go.mod h1:N8U2hD9J65jfukKa2LSf53oVFGkcNFyhW9mcEsm08zs=
+github.com/atomix/atomix-go-client v0.0.0-20190706023513-51518f9bf013 h1:IxAYyXtTiwFTDTtly+qfSS7o8jsVQrsTPGouFyN2Hcc=
+github.com/atomix/atomix-go-client v0.0.0-20190706023513-51518f9bf013/go.mod h1:N8U2hD9J65jfukKa2LSf53oVFGkcNFyhW9mcEsm08zs=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
