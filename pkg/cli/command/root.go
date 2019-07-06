@@ -31,6 +31,7 @@ func GetRootCommand() *cobra.Command {
 	cmd.AddCommand(newGroupCommand())
 	cmd.AddCommand(newGroupsCommand())
 	cmd.AddCommand(newCounterCommand())
+	cmd.AddCommand(newListCommand())
 	cmd.AddCommand(newElectionCommand())
 	cmd.AddCommand(newLockCommand())
 	cmd.AddCommand(newMapCommand())
