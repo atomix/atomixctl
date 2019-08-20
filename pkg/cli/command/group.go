@@ -2,9 +2,9 @@ package command
 
 import (
 	"fmt"
+	"github.com/atomix/atomix-api/proto/atomix/protocols/log"
+	"github.com/atomix/atomix-api/proto/atomix/protocols/raft"
 	"github.com/atomix/atomix-go-client/pkg/client"
-	"github.com/atomix/atomix-go-client/proto/atomix/protocols/log"
-	"github.com/atomix/atomix-go-client/proto/atomix/protocols/raft"
 	"github.com/golang/protobuf/proto"
 	"github.com/spf13/cobra"
 	"os"
@@ -125,9 +125,9 @@ func runGroupCreateCommand(cmd *cobra.Command, args []string) {
 	var protocol proto.Message
 	switch protocolName {
 	case "raft":
-		protocol = &atomix_protocols_raft.RaftProtocol{}
+		protocol = &raft.RaftProtocol{}
 	case "log":
-		protocol = &atomix_protocols_log.LogProtocol{}
+		protocol = &log.LogProtocol{}
 	}
 
 	group, err := client.CreateGroup(newTimeoutContext(), getGroupName(name), partitions, partitionSize, protocol)

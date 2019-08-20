@@ -3,7 +3,7 @@ package command
 import (
 	"context"
 	"fmt"
-	"github.com/atomix/atomix-go-client/pkg/client/map_"
+	"github.com/atomix/atomix-go-client/pkg/client/map"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +24,7 @@ func newMapCommand() *cobra.Command {
 	return cmd
 }
 
-func newMapFromName(name string) map_.Map {
+func newMapFromName(name string) _map.Map {
 	group := newGroupFromName(name)
 	m, err := group.GetMap(newTimeoutContext(), getPrimitiveName(name))
 	if err != nil {
@@ -42,9 +42,9 @@ func newMapCreateCommand() *cobra.Command {
 }
 
 func runMapCreateCommand(cmd *cobra.Command, args []string) {
-	map_ := newMapFromName(args[0])
-	map_.Close()
-	ExitWithOutput(fmt.Sprintf("Created %s", map_.Name().String()))
+	_map := newMapFromName(args[0])
+	_map.Close()
+	ExitWithOutput(fmt.Sprintf("Created %s", _map.Name().String()))
 }
 
 func newMapDeleteCommand() *cobra.Command {
@@ -56,12 +56,12 @@ func newMapDeleteCommand() *cobra.Command {
 }
 
 func runMapDeleteCommand(cmd *cobra.Command, args []string) {
-	map_ := newMapFromName(args[0])
-	err := map_.Delete()
+	_map := newMapFromName(args[0])
+	err := _map.Delete()
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(fmt.Sprintf("Deleted %s", map_.Name().String()))
+		ExitWithOutput(fmt.Sprintf("Deleted %s", _map.Name().String()))
 	}
 }
 
@@ -74,8 +74,8 @@ func newMapGetCommand() *cobra.Command {
 }
 
 func runMapGetCommand(cmd *cobra.Command, args []string) {
-	map_ := newMapFromName(args[0])
-	value, err := map_.Get(newTimeoutContext(), args[1])
+	_map := newMapFromName(args[0])
+	value, err := _map.Get(newTimeoutContext(), args[1])
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else if value != nil {
@@ -98,9 +98,9 @@ func newMapPutCommand() *cobra.Command {
 func runMapPutCommand(cmd *cobra.Command, args []string) {
 	m := newMapFromName(args[0])
 	version, _ := cmd.Flags().GetInt64("version")
-	opts := []map_.PutOption{}
+	opts := []_map.PutOption{}
 	if version > 0 {
-		opts = append(opts, map_.WithVersion(version))
+		opts = append(opts, _map.WithVersion(version))
 	}
 
 	value, err := m.Put(newTimeoutContext(), args[1], []byte(args[2]), opts...)
@@ -126,9 +126,9 @@ func newMapRemoveCommand() *cobra.Command {
 func runMapRemoveCommand(cmd *cobra.Command, args []string) {
 	m := newMapFromName(args[0])
 	version, _ := cmd.Flags().GetInt64("version")
-	opts := []map_.RemoveOption{}
+	opts := []_map.RemoveOption{}
 	if version > 0 {
-		opts = append(opts, map_.WithVersion(version))
+		opts = append(opts, _map.WithVersion(version))
 	}
 
 	value, err := m.Remove(newTimeoutContext(), args[1], opts...)
@@ -151,7 +151,7 @@ func newMapKeysCommand() *cobra.Command {
 
 func runMapKeysCommand(cmd *cobra.Command, args []string) {
 	m := newMapFromName(args[0])
-	ch := make(chan *map_.KeyValue)
+	ch := make(chan *_map.KeyValue)
 	err := m.Entries(context.TODO(), ch)
 	if err != nil {
 		ExitWithError(ExitError, err)
@@ -170,8 +170,8 @@ func newMapSizeCommand() *cobra.Command {
 }
 
 func runMapSizeCommand(cmd *cobra.Command, args []string) {
-	map_ := newMapFromName(args[0])
-	size, err := map_.Size(newTimeoutContext())
+	_map := newMapFromName(args[0])
+	size, err := _map.Size(newTimeoutContext())
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -188,8 +188,8 @@ func newMapClearCommand() *cobra.Command {
 }
 
 func runMapClearCommand(cmd *cobra.Command, args []string) {
-	map_ := newMapFromName(args[0])
-	err := map_.Clear(newTimeoutContext())
+	_map := newMapFromName(args[0])
+	err := _map.Clear(newTimeoutContext())
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
