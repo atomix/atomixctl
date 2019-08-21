@@ -14,6 +14,10 @@ func newSetCommand() *cobra.Command {
 	}
 	addClientFlags(cmd)
 	cmd.PersistentFlags().StringP("name", "n", "", "the set name")
+	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_sets"},
+	}
+	cmd.MarkFlagRequired("name")
 	cmd.AddCommand(newSetCreateCommand())
 	cmd.AddCommand(newSetAddCommand())
 	cmd.AddCommand(newSetContainsCommand())
@@ -30,8 +34,8 @@ func newSetFromName(cmd *cobra.Command) set.Set {
 		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
 	}
 
-	group := newGroupFromName(name)
-	m, err := group.GetSet(newTimeoutContext(), getPrimitiveName(name))
+	group := newGroupFromName(cmd, name)
+	m, err := group.GetSet(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
@@ -86,7 +90,7 @@ func runSetAddCommand(cmd *cobra.Command, _ []string) {
 		ExitWithError(ExitBadArgs, errors.New("--value is a required flag"))
 	}
 	value, _ := cmd.Flags().GetString("value")
-	added, err := set.Add(newTimeoutContext(), value)
+	added, err := set.Add(newTimeoutContext(cmd), value)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -110,7 +114,7 @@ func runSetContainsCommand(cmd *cobra.Command, _ []string) {
 		ExitWithError(ExitBadArgs, errors.New("--value is a required flag"))
 	}
 	value, _ := cmd.Flags().GetString("value")
-	contains, err := set.Contains(newTimeoutContext(), value)
+	contains, err := set.Contains(newTimeoutContext(cmd), value)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -134,7 +138,7 @@ func runSetRemoveCommand(cmd *cobra.Command, _ []string) {
 		ExitWithError(ExitBadArgs, errors.New("--value is a required flag"))
 	}
 	value, _ := cmd.Flags().GetString("value")
-	removed, err := set.Remove(newTimeoutContext(), value)
+	removed, err := set.Remove(newTimeoutContext(cmd), value)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -152,7 +156,7 @@ func newSetSizeCommand() *cobra.Command {
 
 func runSetSizeCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
-	size, err := set.Len(newTimeoutContext())
+	size, err := set.Len(newTimeoutContext(cmd))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -170,7 +174,7 @@ func newSetClearCommand() *cobra.Command {
 
 func runSetClearCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
-	err := set.Clear(newTimeoutContext())
+	err := set.Clear(newTimeoutContext(cmd))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

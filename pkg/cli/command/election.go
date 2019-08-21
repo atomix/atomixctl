@@ -14,6 +14,10 @@ func newElectionCommand() *cobra.Command {
 	}
 	addClientFlags(cmd)
 	cmd.PersistentFlags().StringP("name", "n", "", "the election name")
+	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_elections"},
+	}
+	cmd.MarkFlagRequired("name")
 	cmd.AddCommand(newElectionCreateCommand())
 	cmd.AddCommand(newElectionGetCommand())
 	cmd.AddCommand(newElectionEnterCommand())
@@ -28,8 +32,8 @@ func newElectionFromName(cmd *cobra.Command) election.Election {
 		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
 	}
 
-	group := newGroupFromName(name)
-	m, err := group.GetElection(newTimeoutContext(), getPrimitiveName(name))
+	group := newGroupFromName(cmd, name)
+	m, err := group.GetElection(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
@@ -78,7 +82,7 @@ func newElectionGetCommand() *cobra.Command {
 
 func runElectionGetCommand(cmd *cobra.Command, _ []string) {
 	election := newElectionFromName(cmd)
-	term, err := election.GetTerm(newTimeoutContext())
+	term, err := election.GetTerm(newTimeoutContext(cmd))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -96,7 +100,7 @@ func newElectionEnterCommand() *cobra.Command {
 
 func runElectionEnterCommand(cmd *cobra.Command, _ []string) {
 	election := newElectionFromName(cmd)
-	term, err := election.Enter(newTimeoutContext())
+	term, err := election.Enter(newTimeoutContext(cmd))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -114,7 +118,7 @@ func newElectionLeaveCommand() *cobra.Command {
 
 func runElectionLeaveCommand(cmd *cobra.Command, _ []string) {
 	election := newElectionFromName(cmd)
-	err := election.Leave(newTimeoutContext())
+	err := election.Leave(newTimeoutContext(cmd))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

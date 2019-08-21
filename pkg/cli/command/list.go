@@ -15,6 +15,10 @@ func newListCommand() *cobra.Command {
 	}
 	addClientFlags(cmd)
 	cmd.PersistentFlags().StringP("name", "n", "", "the list name")
+	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_lists"},
+	}
+	cmd.MarkFlagRequired("name")
 	cmd.AddCommand(newListCreateCommand())
 	cmd.AddCommand(newListGetCommand())
 	cmd.AddCommand(newListAppendCommand())
@@ -33,8 +37,8 @@ func newListFromName(cmd *cobra.Command) list.List {
 		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
 	}
 
-	group := newGroupFromName(name)
-	m, err := group.GetList(newTimeoutContext(), getPrimitiveName(name))
+	group := newGroupFromName(cmd, name)
+	m, err := group.GetList(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
@@ -89,7 +93,7 @@ func runListGetCommand(cmd *cobra.Command, _ []string) {
 		ExitWithError(ExitBadArgs, errors.New("--index is a required flag"))
 	}
 	index, _ := cmd.Flags().GetInt("index")
-	value, err := list.Get(newTimeoutContext(), index)
+	value, err := list.Get(newTimeoutContext(cmd), index)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else if value != "" {
@@ -115,7 +119,7 @@ func runListAppendCommand(cmd *cobra.Command, _ []string) {
 		ExitWithError(ExitBadArgs, errors.New("--value is a required flag"))
 	}
 	value, _ := cmd.Flags().GetString("value")
-	err := l.Append(newTimeoutContext(), value)
+	err := l.Append(newTimeoutContext(cmd), value)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -144,7 +148,7 @@ func runListInsertCommand(cmd *cobra.Command, _ []string) {
 	}
 	index, _ := cmd.Flags().GetInt("index")
 	value, _ := cmd.Flags().GetString("value")
-	err := l.Insert(newTimeoutContext(), int(index), value)
+	err := l.Insert(newTimeoutContext(cmd), int(index), value)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -169,7 +173,7 @@ func runListRemoveCommand(cmd *cobra.Command, _ []string) {
 		ExitWithError(ExitBadArgs, errors.New("--index is a required flag"))
 	}
 	index, _ := cmd.Flags().GetInt("index")
-	value, err := m.Remove(newTimeoutContext(), int(index))
+	value, err := m.Remove(newTimeoutContext(cmd), int(index))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else if value != "" {
@@ -209,7 +213,7 @@ func newListSizeCommand() *cobra.Command {
 
 func runListSizeCommand(cmd *cobra.Command, _ []string) {
 	list := newListFromName(cmd)
-	size, err := list.Len(newTimeoutContext())
+	size, err := list.Len(newTimeoutContext(cmd))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -227,7 +231,7 @@ func newListClearCommand() *cobra.Command {
 
 func runListClearCommand(cmd *cobra.Command, _ []string) {
 	list := newListFromName(cmd)
-	err := list.Clear(newTimeoutContext())
+	err := list.Clear(newTimeoutContext(cmd))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

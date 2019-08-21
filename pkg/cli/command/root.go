@@ -7,17 +7,18 @@ import (
 
 func GetRootCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "atomix",
-		Short: "Atomix command line client",
+		Use:                    "atomix",
+		Short:                  "Atomix command line client",
+		BashCompletionFunction: bashCompletion,
 	}
 
 	viper.SetDefault("controller", ":5679")
 	viper.SetDefault("namespace", "default")
 	viper.SetDefault("app", "default")
 
-	cmd.PersistentFlags().StringP("controller", "c", viper.GetString("controller"), "the controller address")
-	cmd.PersistentFlags().StringP("namespace", "n", viper.GetString("namespace"), "the partition group namespace")
-	cmd.PersistentFlags().StringP("app", "a", viper.GetString("app"), "the application name")
+	cmd.PersistentFlags().String("controller", viper.GetString("controller"), "the controller address")
+	cmd.PersistentFlags().String("namespace", viper.GetString("namespace"), "the partition group namespace")
+	cmd.PersistentFlags().String("app", viper.GetString("app"), "the application name")
 	cmd.PersistentFlags().String("config", "", "config file (default: $HOME/.atomix/config.yaml)")
 
 	viper.BindPFlag("controller", cmd.PersistentFlags().Lookup("controller"))
@@ -28,6 +29,7 @@ func GetRootCommand() *cobra.Command {
 	cmd.AddCommand(newConfigCommand())
 	cmd.AddCommand(newGroupCommand())
 	cmd.AddCommand(newGroupsCommand())
+	cmd.AddCommand(newPrimitivesCommand())
 	cmd.AddCommand(newCounterCommand())
 	cmd.AddCommand(newListCommand())
 	cmd.AddCommand(newElectionCommand())

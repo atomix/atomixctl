@@ -14,6 +14,10 @@ func newCounterCommand() *cobra.Command {
 	}
 	addClientFlags(cmd)
 	cmd.PersistentFlags().StringP("name", "n", "", "the counter name")
+	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_counters"},
+	}
+	cmd.MarkFlagRequired("name")
 	cmd.AddCommand(newCounterCreateCommand())
 	cmd.AddCommand(newCounterGetCommand())
 	cmd.AddCommand(newCounterSetCommand())
@@ -29,8 +33,8 @@ func newCounterFromName(cmd *cobra.Command) counter.Counter {
 		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
 	}
 
-	group := newGroupFromName(name)
-	m, err := group.GetCounter(newTimeoutContext(), getPrimitiveName(name))
+	group := newGroupFromName(cmd, name)
+	m, err := group.GetCounter(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
@@ -79,7 +83,7 @@ func newCounterGetCommand() *cobra.Command {
 
 func runCounterGetCommand(cmd *cobra.Command, _ []string) {
 	counter := newCounterFromName(cmd)
-	value, err := counter.Get(newTimeoutContext())
+	value, err := counter.Get(newTimeoutContext(cmd))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -103,7 +107,7 @@ func runCounterSetCommand(cmd *cobra.Command, _ []string) {
 		ExitWithError(ExitBadArgs, errors.New("--value is a required flag"))
 	}
 	value, _ := cmd.Flags().GetInt64("value")
-	err := counter.Set(newTimeoutContext(), value)
+	err := counter.Set(newTimeoutContext(cmd), value)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -124,7 +128,7 @@ func newCounterIncrementCommand() *cobra.Command {
 func runCounterIncrementCommand(cmd *cobra.Command, _ []string) {
 	counter := newCounterFromName(cmd)
 	delta, _ := cmd.Flags().GetInt64("delta")
-	value, err := counter.Increment(newTimeoutContext(), delta)
+	value, err := counter.Increment(newTimeoutContext(cmd), delta)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -145,7 +149,7 @@ func newCounterDecrementCommand() *cobra.Command {
 func runCounterDecrementCommand(cmd *cobra.Command, _ []string) {
 	counter := newCounterFromName(cmd)
 	delta, _ := cmd.Flags().GetInt64("delta")
-	value, err := counter.Decrement(newTimeoutContext(), delta)
+	value, err := counter.Decrement(newTimeoutContext(cmd), delta)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

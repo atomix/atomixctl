@@ -17,12 +17,16 @@ const (
 func addClientFlags(cmd *cobra.Command) {
 	viper.SetDefault("group", "")
 	cmd.PersistentFlags().StringP("group", "g", viper.GetString("group"), fmt.Sprintf("the partition group name (default %s)", viper.GetString("group")))
-	cmd.PersistentFlags().StringP("timeout", "t", "15s", "the operation timeout")
+	cmd.PersistentFlags().Duration("timeout", 15*time.Second, "the operation timeout")
 	viper.BindPFlag("group", cmd.PersistentFlags().Lookup("group"))
+	cmd.PersistentFlags().Lookup("group").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_groups"},
+	}
 }
 
-func newTimeoutContext() context.Context {
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+func newTimeoutContext(cmd *cobra.Command) context.Context {
+	timeout, _ := cmd.PersistentFlags().GetDuration("timeout")
+	ctx, _ := context.WithTimeout(context.Background(), timeout)
 	return ctx
 }
 
@@ -35,6 +39,15 @@ func newClientFromEnv() *client.Client {
 		ExitWithError(ExitError, err)
 	}
 	return c
+}
+
+func newGroupFromEnv(cmd *cobra.Command) *client.PartitionGroup {
+	c := newClientFromEnv()
+	g, err := c.GetGroup(newTimeoutContext(cmd), getClientGroup())
+	if err != nil {
+		ExitWithError(ExitError, err)
+	}
+	return g
 }
 
 func newClientFromGroup(name string) *client.Client {
@@ -56,9 +69,9 @@ func newClientFromName(name string) *client.Client {
 	return c
 }
 
-func newGroupFromName(name string) *client.PartitionGroup {
+func newGroupFromName(cmd *cobra.Command, name string) *client.PartitionGroup {
 	c := newClientFromName(name)
-	group, err := c.GetGroup(newTimeoutContext(), getClientGroup())
+	group, err := c.GetGroup(newTimeoutContext(cmd), getClientGroup())
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}

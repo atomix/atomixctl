@@ -14,6 +14,10 @@ func newLockCommand() *cobra.Command {
 	}
 	addClientFlags(cmd)
 	cmd.PersistentFlags().StringP("name", "n", "", "the lock name")
+	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_locks"},
+	}
+	cmd.MarkFlagRequired("name")
 	cmd.AddCommand(newLockCreateCommand())
 	cmd.AddCommand(newLockLockCommand())
 	cmd.AddCommand(newLockGetCommand())
@@ -28,8 +32,8 @@ func newLockFromName(cmd *cobra.Command) lock.Lock {
 		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
 	}
 
-	group := newGroupFromName(name)
-	m, err := group.GetLock(newTimeoutContext(), getPrimitiveName(name))
+	group := newGroupFromName(cmd, name)
+	m, err := group.GetLock(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
@@ -78,7 +82,7 @@ func newLockLockCommand() *cobra.Command {
 
 func runLockLockCommand(cmd *cobra.Command, _ []string) {
 	lock := newLockFromName(cmd)
-	version, err := lock.Lock(newTimeoutContext())
+	version, err := lock.Lock(newTimeoutContext(cmd))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -100,14 +104,14 @@ func runLockGetCommand(cmd *cobra.Command, _ []string) {
 	l := newLockFromName(cmd)
 	version, _ := cmd.Flags().GetUint64("version")
 	if version == 0 {
-		locked, err := l.IsLocked(newTimeoutContext())
+		locked, err := l.IsLocked(newTimeoutContext(cmd))
 		if err != nil {
 			ExitWithError(ExitError, err)
 		} else {
 			ExitWithOutput(locked)
 		}
 	} else {
-		locked, err := l.IsLocked(newTimeoutContext(), lock.WithIsVersion(version))
+		locked, err := l.IsLocked(newTimeoutContext(cmd), lock.WithIsVersion(version))
 		if err != nil {
 			ExitWithError(ExitError, err)
 		} else {
@@ -130,14 +134,14 @@ func runLockUnlockCommand(cmd *cobra.Command, _ []string) {
 	l := newLockFromName(cmd)
 	version, _ := cmd.Flags().GetUint64("version")
 	if version == 0 {
-		unlocked, err := l.Unlock(newTimeoutContext())
+		unlocked, err := l.Unlock(newTimeoutContext(cmd))
 		if err != nil {
 			ExitWithError(ExitError, err)
 		} else {
 			ExitWithOutput(unlocked)
 		}
 	} else {
-		unlocked, err := l.Unlock(newTimeoutContext(), lock.WithVersion(version))
+		unlocked, err := l.Unlock(newTimeoutContext(cmd), lock.WithVersion(version))
 		if err != nil {
 			ExitWithError(ExitError, err)
 		} else {

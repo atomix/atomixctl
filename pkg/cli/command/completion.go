@@ -8,6 +8,166 @@ import (
 	"os"
 )
 
+const bashCompletion = `
+
+__atomix_override_flag_list=(--controller --namespace --app --group -g)
+__atomix_override_flags()
+{
+    local ${__atomix_override_flag_list[*]##*-} two_word_of of var
+    for w in "${words[@]}"; do
+        if [ -n "${two_word_of}" ]; then
+            eval "${two_word_of##*-}=\"${two_word_of}=\${w}\""
+            two_word_of=
+            continue
+        fi
+        for of in "${__atomix_override_flag_list[@]}"; do
+            case "${w}" in
+                ${of}=*)
+                    eval "${of##*-}=\"${w}\""
+                    ;;
+                ${of})
+                    two_word_of="${of}"
+                    ;;
+            esac
+        done
+    done
+    for var in "${__atomix_override_flag_list[@]##*-}"; do
+        if eval "test -n \"\$${var}\""; then
+            eval "echo -n \${${var}}' '"
+        fi
+    done
+}
+
+__atomix_get_groups() {
+    local atomix_output out
+    if atomix_output=$(atomix groups --no-headers 2>/dev/null); then
+        out=($(echo "${atomix_output}" | awk '{print $1}'))
+        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    fi
+}
+
+__atomix_primitive_types() {
+    echo "counter"
+    echo "election"
+    echo "list"
+    echo "lock"
+    echo "map"
+    echo "set"
+}
+
+__atomix_get_primitive_types() {
+    local atomix_output out
+    if out=$(__atomix_primitive_types); then
+        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    fi
+}
+
+__atomix_get_counters() {
+    local atomix_output out
+    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=counter --no-headers 2>/dev/null); then
+        out=($(echo "${atomix_output}" | awk '{print $1}'))
+        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    fi
+}
+
+__atomix_get_elections() {
+    local atomix_output out
+    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=election --no-headers 2>/dev/null); then
+        out=($(echo "${atomix_output}" | awk '{print $1}'))
+        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    fi
+}
+
+__atomix_get_lists() {
+    local atomix_output out
+    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=list --no-headers 2>/dev/null); then
+        out=($(echo "${atomix_output}" | awk '{print $1}'))
+        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    fi
+}
+
+__atomix_get_locks() {
+    local atomix_output out
+    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=lock --no-headers 2>/dev/null); then
+        out=($(echo "${atomix_output}" | awk '{print $1}'))
+        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    fi
+}
+
+__atomix_get_maps() {
+    local atomix_output out
+    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=map --no-headers 2>/dev/null); then
+        out=($(echo "${atomix_output}" | awk '{print $1}'))
+        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    fi
+}
+
+__atomix_get_sets() {
+    local atomix_output out
+    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=set --no-headers 2>/dev/null); then
+        out=($(echo "${atomix_output}" | awk '{print $1}'))
+        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    fi
+}
+
+__atomix_custom_func() {
+    case ${last_command} in
+        atomix_set_cluster | atomix_delete_cluster)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __atomix_get_clusters
+            fi
+            return
+            ;;
+		atomix_remove_simulator)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __atomix_get_simulators
+            fi
+            return
+			;;
+		
+		atomix_remove_network)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __atomix_get_networks
+            fi
+            return
+            ;;	
+			
+        atomix_get_logs | atomix_fetch_logs | atomix_debug | atomix_ssh)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __atomix_get_nodes
+            fi
+            return
+            ;;
+        atomix_run_test)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __atomix_get_tests
+            fi
+            return
+            ;;
+        atomix_run_test-suite)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __atomix_get_test_suites
+            fi
+            return
+            ;;
+        atomix_run_benchmark)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __atomix_get_benchmarks
+            fi
+            return
+            ;;
+        atomix_run_bench-suite)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __atomix_get_bench_suites
+            fi
+            return
+            ;;
+        *)
+            ;;
+    esac
+}
+`
+
 func newCompletionCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:       "completion <shell>",

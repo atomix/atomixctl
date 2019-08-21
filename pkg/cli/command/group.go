@@ -9,14 +9,16 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
+	"time"
 )
 
 func newGroupCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "group [set,get,create,delete]",
+		Use:   "group {set,get,create,delete}",
 		Short: "Manage partition groups and partitions",
 		Run:   runGroupGetCommand,
 	}
+	cmd.PersistentFlags().Duration("timeout", 15*time.Second, "the operation timeout")
 	cmd.AddCommand(newGroupSetCommand())
 	cmd.AddCommand(newGroupGetCommand())
 	cmd.AddCommand(newGroupCreateCommand())
@@ -30,6 +32,7 @@ func newGroupsCommand() *cobra.Command {
 		Short: "Get a list of partition groups",
 		Run:   runGroupsCommand,
 	}
+	cmd.PersistentFlags().Duration("timeout", 15*time.Second, "the operation timeout")
 	cmd.Flags().Bool("no-headers", false, "exclude headers from the output")
 	return cmd
 }
@@ -53,9 +56,9 @@ func printGroup(group *client.PartitionGroup) {
 	fmt.Println(fmt.Sprintf("Partitions Size: %d", group.PartitionSize))
 }
 
-func runGroupsCommand(cmd *cobra.Command, args []string) {
+func runGroupsCommand(cmd *cobra.Command, _ []string) {
 	client := newClientFromEnv()
-	groups, err := client.GetGroups(newTimeoutContext())
+	groups, err := client.GetGroups(newTimeoutContext(cmd))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -98,7 +101,7 @@ func runGroupGetCommand(cmd *cobra.Command, args []string) {
 	}
 
 	client := newClientFromGroup(name)
-	group, err := client.GetGroup(newTimeoutContext(), getGroupName(name))
+	group, err := client.GetGroup(newTimeoutContext(cmd), getGroupName(name))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -135,7 +138,7 @@ func runGroupCreateCommand(cmd *cobra.Command, args []string) {
 		protocol = &log.LogProtocol{}
 	}
 
-	group, err := client.CreateGroup(newTimeoutContext(), getGroupName(name), partitions, partitionSize, protocol)
+	group, err := client.CreateGroup(newTimeoutContext(cmd), getGroupName(name), partitions, partitionSize, protocol)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -155,7 +158,7 @@ func newGroupDeleteCommand() *cobra.Command {
 func runGroupDeleteCommand(cmd *cobra.Command, args []string) {
 	name := args[0]
 	client := newClientFromGroup(name)
-	err := client.DeleteGroup(newTimeoutContext(), getGroupName(name))
+	err := client.DeleteGroup(newTimeoutContext(cmd), getGroupName(name))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
