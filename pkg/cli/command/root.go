@@ -24,7 +24,6 @@ func GetRootCommand() *cobra.Command {
 	viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace"))
 	viper.BindPFlag("app", cmd.PersistentFlags().Lookup("app"))
 
-	cmd.AddCommand(newInitCommand())
 	cmd.AddCommand(newCompletionCommand())
 	cmd.AddCommand(newConfigCommand())
 	cmd.AddCommand(newGroupCommand())

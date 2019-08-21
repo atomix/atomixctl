@@ -4,7 +4,6 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"os"
 )
 
 var (
@@ -93,42 +92,6 @@ func runConfigDeleteCommand(cmd *cobra.Command, args []string) {
 	} else {
 		value := viper.Get(args[0])
 		ExitWithOutput(value)
-	}
-}
-
-func newInitCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:   "init",
-		Short: "Initialize the Atomix CLI configuration",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := viper.ReadInConfig(); err == nil {
-				ExitWithSuccess()
-			}
-
-			home, err := homedir.Dir()
-			if err != nil {
-				ExitWithError(ExitError, err)
-			}
-
-			err = os.MkdirAll(home+"/.atomix", 0777)
-			if err != nil {
-				ExitWithError(ExitError, err)
-			}
-
-			f, err := os.Create(home + "/.atomix/config.yaml")
-			if err != nil {
-				ExitWithError(ExitError, err)
-			} else {
-				f.Close()
-			}
-
-			err = viper.WriteConfig()
-			if err != nil {
-				ExitWithError(ExitError, err)
-			} else {
-				ExitWithOutput("Created ~/.atomix/config.yaml")
-			}
-		},
 	}
 }
 
