@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 	"github.com/atomix/atomix-go-client/pkg/client/set"
 	"github.com/spf13/cobra"
@@ -17,7 +16,7 @@ func newSetCommand() *cobra.Command {
 	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__atomix_get_sets"},
 	}
-	cmd.MarkFlagRequired("name")
+	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newSetCreateCommand())
 	cmd.AddCommand(newSetAddCommand())
 	cmd.AddCommand(newSetContainsCommand())
@@ -30,10 +29,6 @@ func newSetCommand() *cobra.Command {
 
 func newSetFromName(cmd *cobra.Command) set.Set {
 	name, _ := cmd.Flags().GetString("name")
-	if name == "" {
-		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
-	}
-
 	group := newGroupFromName(cmd, name)
 	m, err := group.GetSet(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
@@ -81,14 +76,12 @@ func newSetAddCommand() *cobra.Command {
 		Run:  runSetAddCommand,
 	}
 	cmd.Flags().StringP("value", "v", "", "the value to add")
+	cmd.MarkFlagRequired("value")
 	return cmd
 }
 
 func runSetAddCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
-	if !cmd.Flags().Changed("value") {
-		ExitWithError(ExitBadArgs, errors.New("--value is a required flag"))
-	}
 	value, _ := cmd.Flags().GetString("value")
 	added, err := set.Add(newTimeoutContext(cmd), value)
 	if err != nil {
@@ -105,14 +98,12 @@ func newSetContainsCommand() *cobra.Command {
 		Run:  runSetContainsCommand,
 	}
 	cmd.Flags().StringP("value", "v", "", "the value to check")
+	cmd.MarkFlagRequired("value")
 	return cmd
 }
 
 func runSetContainsCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
-	if !cmd.Flags().Changed("value") {
-		ExitWithError(ExitBadArgs, errors.New("--value is a required flag"))
-	}
 	value, _ := cmd.Flags().GetString("value")
 	contains, err := set.Contains(newTimeoutContext(cmd), value)
 	if err != nil {
@@ -129,14 +120,12 @@ func newSetRemoveCommand() *cobra.Command {
 		Run:  runSetRemoveCommand,
 	}
 	cmd.Flags().StringP("value", "v", "", "the value to remove")
+	cmd.MarkFlagRequired("value")
 	return cmd
 }
 
 func runSetRemoveCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
-	if !cmd.Flags().Changed("value") {
-		ExitWithError(ExitBadArgs, errors.New("--value is a required flag"))
-	}
 	value, _ := cmd.Flags().GetString("value")
 	removed, err := set.Remove(newTimeoutContext(cmd), value)
 	if err != nil {

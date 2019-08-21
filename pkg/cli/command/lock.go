@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 	"github.com/atomix/atomix-go-client/pkg/client/lock"
 	"github.com/spf13/cobra"
@@ -17,7 +16,7 @@ func newLockCommand() *cobra.Command {
 	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__atomix_get_locks"},
 	}
-	cmd.MarkFlagRequired("name")
+	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newLockCreateCommand())
 	cmd.AddCommand(newLockLockCommand())
 	cmd.AddCommand(newLockGetCommand())
@@ -28,10 +27,6 @@ func newLockCommand() *cobra.Command {
 
 func newLockFromName(cmd *cobra.Command) lock.Lock {
 	name, _ := cmd.Flags().GetString("name")
-	if name == "" {
-		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
-	}
-
 	group := newGroupFromName(cmd, name)
 	m, err := group.GetLock(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {

@@ -2,7 +2,6 @@ package command
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/atomix/atomix-go-client/pkg/client/map"
 	"github.com/spf13/cobra"
@@ -18,7 +17,7 @@ func newMapCommand() *cobra.Command {
 	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__atomix_get_maps"},
 	}
-	cmd.MarkFlagRequired("name")
+	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newMapCreateCommand())
 	cmd.AddCommand(newMapGetCommand())
 	cmd.AddCommand(newMapPutCommand())
@@ -32,10 +31,6 @@ func newMapCommand() *cobra.Command {
 
 func newMapFromName(cmd *cobra.Command) _map.Map {
 	name, _ := cmd.Flags().GetString("name")
-	if name == "" {
-		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
-	}
-
 	group := newGroupFromName(cmd, name)
 	m, err := group.GetMap(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
@@ -83,6 +78,7 @@ func newMapGetCommand() *cobra.Command {
 		Run:  runMapGetCommand,
 	}
 	cmd.Flags().StringP("key", "k", "", "the key to get")
+	cmd.MarkFlagRequired("key")
 	return cmd
 }
 
@@ -106,7 +102,9 @@ func newMapPutCommand() *cobra.Command {
 		Run:  runMapPutCommand,
 	}
 	cmd.Flags().StringP("key", "k", "", "the key to put")
+	cmd.MarkFlagRequired("key")
 	cmd.Flags().StringP("value", "v", "", "the value to put into the map")
+	cmd.MarkFlagRequired("value")
 	cmd.Flags().Int64("version", 0, "the entry version")
 	return cmd
 }
@@ -138,6 +136,7 @@ func newMapRemoveCommand() *cobra.Command {
 		Run:  runMapRemoveCommand,
 	}
 	cmd.Flags().StringP("key", "k", "", "the key to remove")
+	cmd.MarkFlagRequired("key")
 	cmd.Flags().Int64("version", 0, "the entry version")
 	return cmd
 }

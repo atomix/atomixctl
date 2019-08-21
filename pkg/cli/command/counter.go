@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 	"github.com/atomix/atomix-go-client/pkg/client/counter"
 	"github.com/spf13/cobra"
@@ -17,7 +16,7 @@ func newCounterCommand() *cobra.Command {
 	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__atomix_get_counters"},
 	}
-	cmd.MarkFlagRequired("name")
+	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newCounterCreateCommand())
 	cmd.AddCommand(newCounterGetCommand())
 	cmd.AddCommand(newCounterSetCommand())
@@ -29,10 +28,6 @@ func newCounterCommand() *cobra.Command {
 
 func newCounterFromName(cmd *cobra.Command) counter.Counter {
 	name, _ := cmd.Flags().GetString("name")
-	if name == "" {
-		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
-	}
-
 	group := newGroupFromName(cmd, name)
 	m, err := group.GetCounter(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
@@ -98,14 +93,12 @@ func newCounterSetCommand() *cobra.Command {
 		Run:  runCounterSetCommand,
 	}
 	cmd.Flags().Int64P("value", "v", 0, "the value to set")
+	cmd.MarkFlagRequired("value")
 	return cmd
 }
 
 func runCounterSetCommand(cmd *cobra.Command, _ []string) {
 	counter := newCounterFromName(cmd)
-	if !cmd.Flags().Changed("value") {
-		ExitWithError(ExitBadArgs, errors.New("--value is a required flag"))
-	}
 	value, _ := cmd.Flags().GetInt64("value")
 	err := counter.Set(newTimeoutContext(cmd), value)
 	if err != nil {

@@ -2,7 +2,6 @@ package command
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/atomix/atomix-go-client/pkg/client/list"
 	"github.com/spf13/cobra"
@@ -18,7 +17,7 @@ func newListCommand() *cobra.Command {
 	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__atomix_get_lists"},
 	}
-	cmd.MarkFlagRequired("name")
+	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newListCreateCommand())
 	cmd.AddCommand(newListGetCommand())
 	cmd.AddCommand(newListAppendCommand())
@@ -33,10 +32,6 @@ func newListCommand() *cobra.Command {
 
 func newListFromName(cmd *cobra.Command) list.List {
 	name, _ := cmd.Flags().GetString("name")
-	if name == "" {
-		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
-	}
-
 	group := newGroupFromName(cmd, name)
 	m, err := group.GetList(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
@@ -84,14 +79,12 @@ func newListGetCommand() *cobra.Command {
 		Run:  runListGetCommand,
 	}
 	cmd.Flags().IntP("index", "i", -1, "the index to get")
+	cmd.MarkFlagRequired("index")
 	return cmd
 }
 
 func runListGetCommand(cmd *cobra.Command, _ []string) {
 	list := newListFromName(cmd)
-	if !cmd.Flags().Changed("index") {
-		ExitWithError(ExitBadArgs, errors.New("--index is a required flag"))
-	}
 	index, _ := cmd.Flags().GetInt("index")
 	value, err := list.Get(newTimeoutContext(cmd), index)
 	if err != nil {
@@ -110,14 +103,12 @@ func newListAppendCommand() *cobra.Command {
 		Run:  runListAppendCommand,
 	}
 	cmd.Flags().StringP("value", "v", "", "the value to append")
+	cmd.MarkFlagRequired("value")
 	return cmd
 }
 
 func runListAppendCommand(cmd *cobra.Command, _ []string) {
 	l := newListFromName(cmd)
-	if !cmd.Flags().Changed("value") {
-		ExitWithError(ExitBadArgs, errors.New("--value is a required flag"))
-	}
 	value, _ := cmd.Flags().GetString("value")
 	err := l.Append(newTimeoutContext(cmd), value)
 	if err != nil {
@@ -134,18 +125,14 @@ func newListInsertCommand() *cobra.Command {
 		Run:  runListInsertCommand,
 	}
 	cmd.Flags().IntP("index", "i", -1, "the index to which to insert the value")
+	cmd.MarkFlagRequired("index")
 	cmd.Flags().StringP("value", "v", "", "the value to insert")
+	cmd.MarkFlagRequired("value")
 	return cmd
 }
 
 func runListInsertCommand(cmd *cobra.Command, _ []string) {
 	l := newListFromName(cmd)
-	if !cmd.Flags().Changed("index") {
-		ExitWithError(ExitBadArgs, errors.New("--index is a required flag"))
-	}
-	if !cmd.Flags().Changed("value") {
-		ExitWithError(ExitBadArgs, errors.New("--value is a required flag"))
-	}
 	index, _ := cmd.Flags().GetInt("index")
 	value, _ := cmd.Flags().GetString("value")
 	err := l.Insert(newTimeoutContext(cmd), int(index), value)
@@ -163,15 +150,13 @@ func newListRemoveCommand() *cobra.Command {
 		Run:  runListRemoveCommand,
 	}
 	cmd.Flags().IntP("index", "i", -1, "the index to remove")
+	cmd.MarkFlagRequired("index")
 	cmd.Flags().Int64P("version", "v", 0, "the entry version")
 	return cmd
 }
 
 func runListRemoveCommand(cmd *cobra.Command, _ []string) {
 	m := newListFromName(cmd)
-	if !cmd.Flags().Changed("index") {
-		ExitWithError(ExitBadArgs, errors.New("--index is a required flag"))
-	}
 	index, _ := cmd.Flags().GetInt("index")
 	value, err := m.Remove(newTimeoutContext(cmd), int(index))
 	if err != nil {

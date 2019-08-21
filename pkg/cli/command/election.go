@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 	"github.com/atomix/atomix-go-client/pkg/client/election"
 	"github.com/spf13/cobra"
@@ -17,7 +16,7 @@ func newElectionCommand() *cobra.Command {
 	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__atomix_get_elections"},
 	}
-	cmd.MarkFlagRequired("name")
+	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newElectionCreateCommand())
 	cmd.AddCommand(newElectionGetCommand())
 	cmd.AddCommand(newElectionEnterCommand())
@@ -28,10 +27,6 @@ func newElectionCommand() *cobra.Command {
 
 func newElectionFromName(cmd *cobra.Command) election.Election {
 	name, _ := cmd.Flags().GetString("name")
-	if name == "" {
-		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
-	}
-
 	group := newGroupFromName(cmd, name)
 	m, err := group.GetElection(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
