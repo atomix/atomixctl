@@ -25,7 +25,7 @@ func addClientFlags(cmd *cobra.Command) {
 }
 
 func newTimeoutContext(cmd *cobra.Command) context.Context {
-	timeout, _ := cmd.PersistentFlags().GetDuration("timeout")
+	timeout, _ := cmd.Flags().GetDuration("timeout")
 	ctx, _ := context.WithTimeout(context.Background(), timeout)
 	return ctx
 }

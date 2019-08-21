@@ -27,7 +27,7 @@ func newElectionCommand() *cobra.Command {
 }
 
 func newElectionFromName(cmd *cobra.Command) election.Election {
-	name, _ := cmd.PersistentFlags().GetString("name")
+	name, _ := cmd.Flags().GetString("name")
 	if name == "" {
 		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
 	}

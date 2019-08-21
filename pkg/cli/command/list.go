@@ -32,7 +32,7 @@ func newListCommand() *cobra.Command {
 }
 
 func newListFromName(cmd *cobra.Command) list.List {
-	name, _ := cmd.PersistentFlags().GetString("name")
+	name, _ := cmd.Flags().GetString("name")
 	if name == "" {
 		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
 	}

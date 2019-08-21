@@ -31,7 +31,7 @@ func newMapCommand() *cobra.Command {
 }
 
 func newMapFromName(cmd *cobra.Command) _map.Map {
-	name, _ := cmd.PersistentFlags().GetString("name")
+	name, _ := cmd.Flags().GetString("name")
 	if name == "" {
 		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
 	}

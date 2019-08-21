@@ -16,6 +16,8 @@ github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf/go.mod h1:ybxpYRF
 github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5doyWs3UAsr3K4I6qtAmlQcZDesFNEHPZAzj8=
 github.com/atomix/atomix-api v0.0.0-20190820204356-60f1a3d2c6c0 h1:J6zdjW7s6fnh+oNzBH0e9wUKlOUgEyoFovhGYmOTVz0=
 github.com/atomix/atomix-api v0.0.0-20190820204356-60f1a3d2c6c0/go.mod h1:joWKUd0zIeYbAQ0vmYHGsnV03ZgRalhceHgnJ3EN0mI=
+github.com/atomix/atomix-api v0.0.0-20190821212433-320dd0dbb83e h1:gsIp6ruL8Jm5OwLwnEgmadt/ZDcoa1aeRSEIXzGW6IM=
+github.com/atomix/atomix-api v0.0.0-20190821212433-320dd0dbb83e/go.mod h1:joWKUd0zIeYbAQ0vmYHGsnV03ZgRalhceHgnJ3EN0mI=
 github.com/atomix/atomix-go-client v0.0.0-20190612010047-4fbee0d347fe h1:Cd2KxeU82splwSYIVW+Yv+Y13mIHqglxcxy8q7WCeJA=
 github.com/atomix/atomix-go-client v0.0.0-20190612010047-4fbee0d347fe/go.mod h1:te3WonMlNC1aVZ9Am907Mm6r66B+8G//xvKWAbT+wkU=
 github.com/atomix/atomix-go-client v0.0.0-20190702004429-c125153f6d88 h1:6FwKdBEMsS4Brpp5kMXpL2QO88ptqiMBhjdAYxrxWO8=
@@ -30,6 +32,10 @@ github.com/atomix/atomix-go-client v0.0.0-20190820225909-4934a062a763 h1:dkjH/4q
 github.com/atomix/atomix-go-client v0.0.0-20190820225909-4934a062a763/go.mod h1:/x+9tkB3muAkdsCOLStYabseI6QHOBbnOxTjTydmIb0=
 github.com/atomix/atomix-go-client v0.0.0-20190821194850-c9e0fc2021d0 h1:mElfPQ2/MpW/RMjXA1SMVMbxW0mWok/SJ8LGbRl1Yfg=
 github.com/atomix/atomix-go-client v0.0.0-20190821194850-c9e0fc2021d0/go.mod h1:/x+9tkB3muAkdsCOLStYabseI6QHOBbnOxTjTydmIb0=
+github.com/atomix/atomix-go-client v0.0.0-20190821230659-00fa113a322a h1:JPmxUwz/IVc9dhszOc/GRL72N1gT5av6NnxldcPBe/A=
+github.com/atomix/atomix-go-client v0.0.0-20190821230659-00fa113a322a/go.mod h1:mMQcWVm/D5SL3G7y7SsNyg1Gc5aj2jyjpnuuvcbVRBs=
+github.com/atomix/atomix-go-client v0.0.0-20190821231144-e1d8e3cea00a h1:nBh1CRewFjcBxQog1+sf30bKFnJ8x6bVncaQl2hKqDE=
+github.com/atomix/atomix-go-client v0.0.0-20190821231144-e1d8e3cea00a/go.mod h1:mMQcWVm/D5SL3G7y7SsNyg1Gc5aj2jyjpnuuvcbVRBs=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=

@@ -29,7 +29,7 @@ func newSetCommand() *cobra.Command {
 }
 
 func newSetFromName(cmd *cobra.Command) set.Set {
-	name, _ := cmd.PersistentFlags().GetString("name")
+	name, _ := cmd.Flags().GetString("name")
 	if name == "" {
 		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
 	}

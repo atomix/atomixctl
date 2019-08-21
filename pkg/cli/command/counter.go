@@ -28,7 +28,7 @@ func newCounterCommand() *cobra.Command {
 }
 
 func newCounterFromName(cmd *cobra.Command) counter.Counter {
-	name, _ := cmd.PersistentFlags().GetString("name")
+	name, _ := cmd.Flags().GetString("name")
 	if name == "" {
 		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
 	}

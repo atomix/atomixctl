@@ -46,10 +46,10 @@ func printPrimitives(primitives []*primitive.PrimitiveInfo, includeHeaders bool)
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	if includeHeaders {
-		fmt.Fprintln(writer, "NAME\tTYPE")
+		fmt.Fprintln(writer, "NAME\tAPP\tTYPE")
 	}
 	for _, primitive := range primitives {
-		fmt.Fprintln(writer, fmt.Sprintf("%s\t%s", primitive.Name, primitive.Type))
+		fmt.Fprintln(writer, fmt.Sprintf("%s\t%s\t%s", primitive.Name.Name, primitive.Name.Namespace, primitive.Type))
 	}
 	writer.Flush()
 }
