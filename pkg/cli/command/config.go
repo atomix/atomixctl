@@ -16,7 +16,7 @@ func init() {
 
 func newConfigCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "config <subcommand>",
+		Use:   "config {set,get,delete} [args]",
 		Short: "Read and update CLI configuration options",
 	}
 	cmd.AddCommand(newConfigGetCommand())
