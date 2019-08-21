@@ -1,6 +1,7 @@
 package command
 
 import (
+	"errors"
 	"fmt"
 	"github.com/atomix/atomix-go-client/pkg/client/lock"
 	"github.com/spf13/cobra"
@@ -12,6 +13,7 @@ func newLockCommand() *cobra.Command {
 		Short: "Manage the state of a distributed lock",
 	}
 	addClientFlags(cmd)
+	cmd.PersistentFlags().StringP("name", "n", "", "the lock name")
 	cmd.AddCommand(newLockCreateCommand())
 	cmd.AddCommand(newLockLockCommand())
 	cmd.AddCommand(newLockGetCommand())
@@ -20,7 +22,12 @@ func newLockCommand() *cobra.Command {
 	return cmd
 }
 
-func newLockFromName(name string) lock.Lock {
+func newLockFromName(cmd *cobra.Command) lock.Lock {
+	name, _ := cmd.PersistentFlags().GetString("name")
+	if name == "" {
+		ExitWithError(ExitBadArgs, errors.New("--name is a required flag"))
+	}
+
 	group := newGroupFromName(name)
 	m, err := group.GetLock(newTimeoutContext(), getPrimitiveName(name))
 	if err != nil {
@@ -31,28 +38,28 @@ func newLockFromName(name string) lock.Lock {
 
 func newLockCreateCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:  "create <lock>",
-		Args: cobra.ExactArgs(1),
+		Use:  "create",
+		Args: cobra.NoArgs,
 		Run:  runLockCreateCommand,
 	}
 }
 
-func runLockCreateCommand(cmd *cobra.Command, args []string) {
-	lock := newLockFromName(args[0])
+func runLockCreateCommand(cmd *cobra.Command, _ []string) {
+	lock := newLockFromName(cmd)
 	lock.Close()
 	ExitWithOutput(fmt.Sprintf("Created %s", lock.Name().String()))
 }
 
 func newLockDeleteCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:  "delete <lock>",
-		Args: cobra.ExactArgs(1),
+		Use:  "delete",
+		Args: cobra.NoArgs,
 		Run:  runLockDeleteCommand,
 	}
 }
 
-func runLockDeleteCommand(cmd *cobra.Command, args []string) {
-	lock := newLockFromName(args[0])
+func runLockDeleteCommand(cmd *cobra.Command, _ []string) {
+	lock := newLockFromName(cmd)
 	err := lock.Delete()
 	if err != nil {
 		ExitWithError(ExitError, err)
@@ -63,14 +70,14 @@ func runLockDeleteCommand(cmd *cobra.Command, args []string) {
 
 func newLockLockCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:  "lock <lock>",
-		Args: cobra.ExactArgs(1),
+		Use:  "lock",
+		Args: cobra.NoArgs,
 		Run:  runLockLockCommand,
 	}
 }
 
-func runLockLockCommand(cmd *cobra.Command, args []string) {
-	lock := newLockFromName(args[0])
+func runLockLockCommand(cmd *cobra.Command, _ []string) {
+	lock := newLockFromName(cmd)
 	version, err := lock.Lock(newTimeoutContext())
 	if err != nil {
 		ExitWithError(ExitError, err)
@@ -81,16 +88,16 @@ func runLockLockCommand(cmd *cobra.Command, args []string) {
 
 func newLockGetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "get <lock>",
-		Args: cobra.ExactArgs(1),
+		Use:  "get",
+		Args: cobra.NoArgs,
 		Run:  runLockGetCommand,
 	}
 	cmd.Flags().Uint64P("version", "v", 0, "the lock version")
 	return cmd
 }
 
-func runLockGetCommand(cmd *cobra.Command, args []string) {
-	l := newLockFromName(args[0])
+func runLockGetCommand(cmd *cobra.Command, _ []string) {
+	l := newLockFromName(cmd)
 	version, _ := cmd.Flags().GetUint64("version")
 	if version == 0 {
 		locked, err := l.IsLocked(newTimeoutContext())
@@ -111,16 +118,16 @@ func runLockGetCommand(cmd *cobra.Command, args []string) {
 
 func newLockUnlockCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "unlock <lock>",
-		Args: cobra.ExactArgs(1),
+		Use:  "unlock",
+		Args: cobra.NoArgs,
 		Run:  runLockUnlockCommand,
 	}
 	cmd.Flags().Uint64P("version", "v", 0, "the lock version")
 	return cmd
 }
 
-func runLockUnlockCommand(cmd *cobra.Command, args []string) {
-	l := newLockFromName(args[0])
+func runLockUnlockCommand(cmd *cobra.Command, _ []string) {
+	l := newLockFromName(cmd)
 	version, _ := cmd.Flags().GetUint64("version")
 	if version == 0 {
 		unlocked, err := l.Unlock(newTimeoutContext())
