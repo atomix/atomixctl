@@ -187,7 +187,7 @@ func newMapSizeCommand() *cobra.Command {
 
 func runMapSizeCommand(cmd *cobra.Command, _ []string) {
 	_map := newMapFromName(cmd)
-	size, err := _map.Size(newTimeoutContext())
+	size, err := _map.Len(newTimeoutContext())
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

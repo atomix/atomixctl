@@ -28,6 +28,8 @@ github.com/atomix/atomix-go-client v0.0.0-20190706023513-51518f9bf013 h1:IxAYyXt
 github.com/atomix/atomix-go-client v0.0.0-20190706023513-51518f9bf013/go.mod h1:N8U2hD9J65jfukKa2LSf53oVFGkcNFyhW9mcEsm08zs=
 github.com/atomix/atomix-go-client v0.0.0-20190820225909-4934a062a763 h1:dkjH/4qja2mOduqlQIlodg4YyBXuj3N3UtGccYP/B7M=
 github.com/atomix/atomix-go-client v0.0.0-20190820225909-4934a062a763/go.mod h1:/x+9tkB3muAkdsCOLStYabseI6QHOBbnOxTjTydmIb0=
+github.com/atomix/atomix-go-client v0.0.0-20190821194850-c9e0fc2021d0 h1:mElfPQ2/MpW/RMjXA1SMVMbxW0mWok/SJ8LGbRl1Yfg=
+github.com/atomix/atomix-go-client v0.0.0-20190821194850-c9e0fc2021d0/go.mod h1:/x+9tkB3muAkdsCOLStYabseI6QHOBbnOxTjTydmIb0=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/beorn7/perks v1.0.0/go.mod h1:KWe93zE9D1o94FZ5RNwFwVgaQK1VOXiVxmqh+CedLV8=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=

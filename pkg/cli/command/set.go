@@ -152,7 +152,7 @@ func newSetSizeCommand() *cobra.Command {
 
 func runSetSizeCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
-	size, err := set.Size(newTimeoutContext())
+	size, err := set.Len(newTimeoutContext())
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

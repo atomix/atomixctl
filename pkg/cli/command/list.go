@@ -209,7 +209,7 @@ func newListSizeCommand() *cobra.Command {
 
 func runListSizeCommand(cmd *cobra.Command, _ []string) {
 	list := newListFromName(cmd)
-	size, err := list.Size(newTimeoutContext())
+	size, err := list.Len(newTimeoutContext())
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
