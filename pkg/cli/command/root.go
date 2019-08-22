@@ -18,7 +18,7 @@ func GetRootCommand() *cobra.Command {
 
 	cmd.PersistentFlags().String("controller", viper.GetString("controller"), "the controller address")
 	cmd.PersistentFlags().String("namespace", viper.GetString("namespace"), "the partition group namespace")
-	cmd.PersistentFlags().String("app", viper.GetString("app"), "the application name")
+	cmd.PersistentFlags().StringP("app", "a", viper.GetString("app"), "the application name")
 	cmd.PersistentFlags().String("config", "", "config file (default: $HOME/.atomix/config.yaml)")
 
 	viper.BindPFlag("controller", cmd.PersistentFlags().Lookup("controller"))
