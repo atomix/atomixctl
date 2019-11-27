@@ -3,6 +3,7 @@ package command
 import (
 	"fmt"
 	"github.com/atomix/atomix-api/proto/atomix/primitive"
+	primitivetype "github.com/atomix/atomix-go-client/pkg/client/primitive"
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
@@ -31,7 +32,7 @@ func runPrimitivesCommand(cmd *cobra.Command, _ []string) {
 	if t == "" {
 		primitives, err = group.GetPrimitives(newTimeoutContext(cmd))
 	} else {
-		primitives, err = group.GetPrimitives(newTimeoutContext(cmd), t)
+		primitives, err = group.GetPrimitives(newTimeoutContext(cmd), primitivetype.Type(t))
 	}
 
 	if err != nil {

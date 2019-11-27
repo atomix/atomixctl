@@ -116,7 +116,7 @@ func runMapPutCommand(cmd *cobra.Command, _ []string) {
 	version, _ := cmd.Flags().GetInt64("version")
 	opts := []_map.PutOption{}
 	if version > 0 {
-		opts = append(opts, _map.WithVersion(version))
+		opts = append(opts, _map.IfVersion(version))
 	}
 
 	kv, err := m.Put(newTimeoutContext(cmd), key, []byte(value), opts...)
@@ -147,7 +147,7 @@ func runMapRemoveCommand(cmd *cobra.Command, _ []string) {
 	version, _ := cmd.Flags().GetInt64("version")
 	opts := []_map.RemoveOption{}
 	if version > 0 {
-		opts = append(opts, _map.WithVersion(version))
+		opts = append(opts, _map.IfVersion(version))
 	}
 
 	value, err := m.Remove(newTimeoutContext(cmd), key, opts...)
@@ -170,7 +170,7 @@ func newMapKeysCommand() *cobra.Command {
 
 func runMapKeysCommand(cmd *cobra.Command, _ []string) {
 	m := newMapFromName(cmd)
-	ch := make(chan *_map.KeyValue)
+	ch := make(chan *_map.Entry)
 	err := m.Entries(context.TODO(), ch)
 	if err != nil {
 		ExitWithError(ExitError, err)

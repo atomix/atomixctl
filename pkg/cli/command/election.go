@@ -113,7 +113,7 @@ func newElectionLeaveCommand() *cobra.Command {
 
 func runElectionLeaveCommand(cmd *cobra.Command, _ []string) {
 	election := newElectionFromName(cmd)
-	err := election.Leave(newTimeoutContext(cmd))
+	_, err := election.Leave(newTimeoutContext(cmd))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

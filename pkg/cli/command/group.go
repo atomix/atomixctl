@@ -41,10 +41,10 @@ func printGroups(groups []*client.PartitionGroup, includeHeaders bool) {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	if includeHeaders {
-		fmt.Fprintln(writer, "NAME\tPROTOCOL\tPARTITIONS\tSIZE")
+		fmt.Fprintln(writer, "NAME\tPARTITIONS\tSIZE")
 	}
 	for _, group := range groups {
-		fmt.Fprintln(writer, fmt.Sprintf("%s\t%s\t%d\t%d", group.Name, group.Protocol, group.Partitions, group.PartitionSize))
+		fmt.Fprintln(writer, fmt.Sprintf("%s\t%d\t%d", group.Name, group.Partitions, group.PartitionSize))
 	}
 	writer.Flush()
 }

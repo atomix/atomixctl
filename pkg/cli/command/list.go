@@ -89,8 +89,8 @@ func runListGetCommand(cmd *cobra.Command, _ []string) {
 	value, err := list.Get(newTimeoutContext(cmd), index)
 	if err != nil {
 		ExitWithError(ExitError, err)
-	} else if value != "" {
-		ExitWithOutput(value)
+	} else if value != nil {
+		ExitWithOutput(string(value))
 	} else {
 		ExitWithOutput(nil)
 	}
@@ -110,7 +110,7 @@ func newListAppendCommand() *cobra.Command {
 func runListAppendCommand(cmd *cobra.Command, _ []string) {
 	l := newListFromName(cmd)
 	value, _ := cmd.Flags().GetString("value")
-	err := l.Append(newTimeoutContext(cmd), value)
+	err := l.Append(newTimeoutContext(cmd), []byte(value))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -135,7 +135,7 @@ func runListInsertCommand(cmd *cobra.Command, _ []string) {
 	l := newListFromName(cmd)
 	index, _ := cmd.Flags().GetInt("index")
 	value, _ := cmd.Flags().GetString("value")
-	err := l.Insert(newTimeoutContext(cmd), int(index), value)
+	err := l.Insert(newTimeoutContext(cmd), int(index), []byte(value))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -161,8 +161,8 @@ func runListRemoveCommand(cmd *cobra.Command, _ []string) {
 	value, err := m.Remove(newTimeoutContext(cmd), int(index))
 	if err != nil {
 		ExitWithError(ExitError, err)
-	} else if value != "" {
-		ExitWithOutput(value)
+	} else if value != nil {
+		ExitWithOutput(string(value))
 	} else {
 		ExitWithOutput(nil)
 	}
@@ -178,13 +178,13 @@ func newListItemsCommand() *cobra.Command {
 
 func runListItemsCommand(cmd *cobra.Command, _ []string) {
 	m := newListFromName(cmd)
-	ch := make(chan string)
+	ch := make(chan []byte)
 	err := m.Items(context.TODO(), ch)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
 	for value := range ch {
-		println(value)
+		println(string(value))
 	}
 }
 
