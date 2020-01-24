@@ -2,9 +2,9 @@ package command
 
 import (
 	"fmt"
-	"github.com/atomix/atomix-api/proto/atomix/protocols/log"
-	"github.com/atomix/atomix-api/proto/atomix/protocols/raft"
-	"github.com/atomix/atomix-go-client/pkg/client"
+	"github.com/atomix/api/proto/atomix/protocols/log"
+	"github.com/atomix/api/proto/atomix/protocols/raft"
+	"github.com/atomix/go-client/pkg/client"
 	"github.com/golang/protobuf/proto"
 	"github.com/spf13/cobra"
 	"os"

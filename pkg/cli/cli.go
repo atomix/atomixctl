@@ -2,7 +2,7 @@ package cli
 
 import (
 	"fmt"
-	"github.com/atomix/atomix-cli/pkg/cli/command"
+	"github.com/atomix/cli/pkg/cli/command"
 	"os"
 )
 

@@ -2,8 +2,8 @@ package command
 
 import (
 	"fmt"
-	"github.com/atomix/atomix-api/proto/atomix/primitive"
-	primitivetype "github.com/atomix/atomix-go-client/pkg/client/primitive"
+	"github.com/atomix/api/proto/atomix/primitive"
+	primitivetype "github.com/atomix/go-client/pkg/client/primitive"
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"

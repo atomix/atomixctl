@@ -2,7 +2,7 @@ package command
 
 import (
 	"fmt"
-	"github.com/atomix/atomix-go-client/pkg/client/lock"
+	"github.com/atomix/go-client/pkg/client/lock"
 	"github.com/spf13/cobra"
 )
 

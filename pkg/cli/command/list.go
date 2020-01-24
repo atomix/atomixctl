@@ -3,7 +3,7 @@ package command
 import (
 	"context"
 	"fmt"
-	"github.com/atomix/atomix-go-client/pkg/client/list"
+	"github.com/atomix/go-client/pkg/client/list"
 	"github.com/spf13/cobra"
 )
 

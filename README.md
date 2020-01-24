@@ -7,7 +7,7 @@ This project provides a CLI for [Atomix 4].
 To install the CLI, run:
 
 ```bash
-> go get -u github.com/atomix/atomix-cli/cmd/atomix
+> go get -u github.com/atomix/cli/cmd/atomix
 ```
 
 Once the CLI has been installed, initialize the settings:
@@ -48,15 +48,15 @@ can be build by simply running:
 ```bash
 > make
 go build -o build/_output/bin/atomix ./cmd/cli
-docker build . -f build/Dockerfile -t atomix/atomix-cli:latest
+docker build . -f build/Dockerfile -t atomix/cli:latest
 ...
 ```
 
-To use the CLI in Kubernetes, run the `atomix/atomix-cli` Docker image in
+To use the CLI in Kubernetes, run the `atomix/cli` Docker image in
 a single pod deployment:
 
 ```bash
-> kubectl run atomix-cli --rm -it --image atomix/atomix-cli:latest --image-pull-policy "IfNotPresent" --restart "Never"
+> kubectl run cli --rm -it --image atomix/cli:latest --image-pull-policy "IfNotPresent" --restart "Never"
 ```
 
 This command will run the CLI image as a `Deployment` and log into the bash shell.

@@ -1,9 +1,9 @@
-module github.com/atomix/atomix-cli
+module github.com/atomix/cli
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
-	github.com/atomix/atomix-api v0.0.0-20191021183656-837bfda65c82
-	github.com/atomix/atomix-go-client v0.0.0-20191127222459-36981d701c6e
+	github.com/atomix/api v0.0.0-20200123231207-4e5fb1cbaf40
+	github.com/atomix/go-client v0.0.0-20200124004211-e5e19cd4730d
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/elazarl/goproxy v0.0.0-20190703090003-6125c262ffb0 // indirect
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
@@ -16,9 +16,9 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.3.0 // indirect
+	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0
 	github.com/inconshreveable/mousetrap v1.0.0
-	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/magiconair/properties v1.8.1
 	github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e // indirect
 	github.com/mitchellh/go-homedir v1.1.0

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/atomix/atomix-cli/pkg/cli"
+	"github.com/atomix/cli/pkg/cli"
 )
 
 func main() {

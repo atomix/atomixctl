@@ -2,7 +2,7 @@ package command
 
 import (
 	"fmt"
-	"github.com/atomix/atomix-go-client/pkg/client/counter"
+	"github.com/atomix/go-client/pkg/client/counter"
 	"github.com/spf13/cobra"
 )
 
