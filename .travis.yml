@@ -35,4 +35,4 @@ jobs:
     - stage: push images
       if: type != pull_request
       script:
-        - bash /build/bin/push-images
+        - bash ./build/bin/push-images
