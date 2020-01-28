@@ -31,8 +31,4 @@ jobs:
     - stage: build
       script:
          - make build
-         - make images
-    - stage: push images
-      if: type != pull_request
-      script:
-        - bash ./build/bin/push-images
+         - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./build/bin/push-images; fi'
