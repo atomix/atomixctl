@@ -29,12 +29,12 @@ const (
 )
 
 func addClientFlags(cmd *cobra.Command) {
-	viper.SetDefault("group", "")
-	cmd.PersistentFlags().StringP("group", "g", viper.GetString("group"), fmt.Sprintf("the partition group name (default %s)", viper.GetString("group")))
+	viper.SetDefault("database", "")
+	cmd.PersistentFlags().StringP("database", "d", viper.GetString("database"), fmt.Sprintf("the database name (default %s)", viper.GetString("database")))
 	cmd.PersistentFlags().Duration("timeout", 15*time.Second, "the operation timeout")
-	viper.BindPFlag("group", cmd.PersistentFlags().Lookup("group"))
-	cmd.PersistentFlags().Lookup("group").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_groups"},
+	viper.BindPFlag("database", cmd.PersistentFlags().Lookup("database"))
+	cmd.PersistentFlags().Lookup("database").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_databases"},
 	}
 }
 
@@ -55,19 +55,19 @@ func newClientFromEnv() *client.Client {
 	return c
 }
 
-func newGroupFromEnv(cmd *cobra.Command) *client.PartitionGroup {
+func newDatabaseFromEnv(cmd *cobra.Command) *client.Database {
 	c := newClientFromEnv()
-	g, err := c.GetGroup(newTimeoutContext(cmd), getClientGroup())
+	d, err := c.GetDatabase(newTimeoutContext(cmd), getClientDatabase())
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
-	return g
+	return d
 }
 
-func newClientFromGroup(name string) *client.Client {
+func newClientFromDatabase(name string) *client.Client {
 	c, err := client.NewClient(
 		getClientController(),
-		client.WithNamespace(getGroupNamespace(name)),
+		client.WithNamespace(getDatabaseNamespace(name)),
 		client.WithApplication(getClientApp()))
 	if err != nil {
 		ExitWithError(ExitError, err)
@@ -83,20 +83,20 @@ func newClientFromName(name string) *client.Client {
 	return c
 }
 
-func newGroupFromName(cmd *cobra.Command, name string) *client.PartitionGroup {
+func newDatabaseFromName(cmd *cobra.Command, name string) *client.Database {
 	c := newClientFromName(name)
-	group, err := c.GetGroup(newTimeoutContext(cmd), getClientGroup())
+	database, err := c.GetDatabase(newTimeoutContext(cmd), getClientDatabase())
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
-	return group
+	return database
 }
 
 func splitName(name string) []string {
 	return strings.Split(name, nameSep)
 }
 
-func getGroupNamespace(name string) string {
+func getDatabaseNamespace(name string) string {
 	nameParts := splitName(name)
 	if len(nameParts) == 2 {
 		return nameParts[0]
@@ -104,7 +104,7 @@ func getGroupNamespace(name string) string {
 	return getClientNamespace()
 }
 
-func getGroupName(name string) string {
+func getDatabaseName(name string) string {
 	nameParts := splitName(name)
 	return nameParts[len(nameParts)-1]
 }
@@ -121,12 +121,12 @@ func getClientNamespace() string {
 	return getConfig("namespace")
 }
 
-func setClientGroup(group string) error {
-	return setConfig("group", group)
+func setClientDatabase(database string) error {
+	return setConfig("database", database)
 }
 
-func getClientGroup() string {
-	return getConfig("group")
+func getClientDatabase() string {
+	return getConfig("database")
 }
 
 func getClientApp() string {

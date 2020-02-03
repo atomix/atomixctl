@@ -43,7 +43,7 @@ func newConfigGetCommand() *cobra.Command {
 	validArgs := []string{
 		"controller",
 		"namespace",
-		"group",
+		"database",
 		"app",
 	}
 	return &cobra.Command{
@@ -63,7 +63,7 @@ func newConfigSetCommand() *cobra.Command {
 	validArgs := []string{
 		"controller",
 		"namespace",
-		"group",
+		"database",
 		"app",
 	}
 	return &cobra.Command{
@@ -88,7 +88,7 @@ func newConfigDeleteCommand() *cobra.Command {
 	validArgs := []string{
 		"controller",
 		"namespace",
-		"group",
+		"database",
 		"app",
 	}
 	return &cobra.Command{

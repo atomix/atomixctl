@@ -45,8 +45,8 @@ func newMapCommand() *cobra.Command {
 
 func newMapFromName(cmd *cobra.Command) _map.Map {
 	name, _ := cmd.Flags().GetString("name")
-	group := newGroupFromName(cmd, name)
-	m, err := group.GetMap(newTimeoutContext(cmd), getPrimitiveName(name))
+	database := newDatabaseFromName(cmd, name)
+	m, err := database.GetMap(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}

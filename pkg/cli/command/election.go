@@ -41,8 +41,8 @@ func newElectionCommand() *cobra.Command {
 
 func newElectionFromName(cmd *cobra.Command) election.Election {
 	name, _ := cmd.Flags().GetString("name")
-	group := newGroupFromName(cmd, name)
-	m, err := group.GetElection(newTimeoutContext(cmd), getPrimitiveName(name))
+	database := newDatabaseFromName(cmd, name)
+	m, err := database.GetElection(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}

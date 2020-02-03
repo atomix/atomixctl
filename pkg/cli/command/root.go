@@ -41,8 +41,7 @@ func GetRootCommand() *cobra.Command {
 
 	cmd.AddCommand(newCompletionCommand())
 	cmd.AddCommand(newConfigCommand())
-	cmd.AddCommand(newGroupCommand())
-	cmd.AddCommand(newGroupsCommand())
+	cmd.AddCommand(newDatabasesCommand())
 	cmd.AddCommand(newPrimitivesCommand())
 	cmd.AddCommand(newCounterCommand())
 	cmd.AddCommand(newListCommand())

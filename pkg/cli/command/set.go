@@ -43,8 +43,8 @@ func newSetCommand() *cobra.Command {
 
 func newSetFromName(cmd *cobra.Command) set.Set {
 	name, _ := cmd.Flags().GetString("name")
-	group := newGroupFromName(cmd, name)
-	m, err := group.GetSet(newTimeoutContext(cmd), getPrimitiveName(name))
+	database := newDatabaseFromName(cmd, name)
+	m, err := database.GetSet(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}

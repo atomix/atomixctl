@@ -24,7 +24,7 @@ import (
 
 const bashCompletion = `
 
-__atomix_override_flag_list=(--controller --namespace --app --group -g)
+__atomix_override_flag_list=(--controller --namespace --app --database -d)
 __atomix_override_flags()
 {
     local ${__atomix_override_flag_list[*]##*-} two_word_of of var
@@ -52,9 +52,9 @@ __atomix_override_flags()
     done
 }
 
-__atomix_get_groups() {
+__atomix_get_databases() {
     local atomix_output out
-    if atomix_output=$(atomix groups --no-headers 2>/dev/null); then
+    if atomix_output=$(atomix databases --no-headers 2>/dev/null); then
         out=($(echo "${atomix_output}" | awk '{print $1}'))
         COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
     fi

@@ -42,8 +42,8 @@ func newCounterCommand() *cobra.Command {
 
 func newCounterFromName(cmd *cobra.Command) counter.Counter {
 	name, _ := cmd.Flags().GetString("name")
-	group := newGroupFromName(cmd, name)
-	m, err := group.GetCounter(newTimeoutContext(cmd), getPrimitiveName(name))
+	database := newDatabaseFromName(cmd, name)
+	m, err := database.GetCounter(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}

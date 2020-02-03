@@ -46,8 +46,8 @@ func newListCommand() *cobra.Command {
 
 func newListFromName(cmd *cobra.Command) list.List {
 	name, _ := cmd.Flags().GetString("name")
-	group := newGroupFromName(cmd, name)
-	m, err := group.GetList(newTimeoutContext(cmd), getPrimitiveName(name))
+	database := newDatabaseFromName(cmd, name)
+	m, err := database.GetList(newTimeoutContext(cmd), getPrimitiveName(name))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}

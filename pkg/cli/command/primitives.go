@@ -39,14 +39,14 @@ func newPrimitivesCommand() *cobra.Command {
 }
 
 func runPrimitivesCommand(cmd *cobra.Command, _ []string) {
-	group := newGroupFromEnv(cmd)
+	database := newDatabaseFromEnv(cmd)
 	t, _ := cmd.Flags().GetString("type")
 	var primitives []*primitive.PrimitiveInfo
 	var err error
 	if t == "" {
-		primitives, err = group.GetPrimitives(newTimeoutContext(cmd))
+		primitives, err = database.GetPrimitives(newTimeoutContext(cmd))
 	} else {
-		primitives, err = group.GetPrimitives(newTimeoutContext(cmd), primitivetype.Type(t))
+		primitives, err = database.GetPrimitives(newTimeoutContext(cmd), primitivetype.Type(t))
 	}
 
 	if err != nil {
