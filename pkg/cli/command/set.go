@@ -43,8 +43,10 @@ func newSetCommand() *cobra.Command {
 
 func newSetFromName(cmd *cobra.Command) set.Set {
 	name, _ := cmd.Flags().GetString("name")
-	database := newDatabaseFromName(cmd, name)
-	m, err := database.GetSet(newTimeoutContext(cmd), getPrimitiveName(name))
+	database := getDatabase(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	m, err := database.GetSet(ctx, name)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
@@ -61,7 +63,9 @@ func newSetCreateCommand() *cobra.Command {
 
 func runSetCreateCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
-	set.Close()
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	set.Close(ctx)
 	ExitWithOutput(fmt.Sprintf("Created %s", set.Name().String()))
 }
 
@@ -75,7 +79,9 @@ func newSetDeleteCommand() *cobra.Command {
 
 func runSetDeleteCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
-	err := set.Delete()
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := set.Delete(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -97,7 +103,9 @@ func newSetAddCommand() *cobra.Command {
 func runSetAddCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
 	value, _ := cmd.Flags().GetString("value")
-	added, err := set.Add(newTimeoutContext(cmd), value)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	added, err := set.Add(ctx, value)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -119,7 +127,9 @@ func newSetContainsCommand() *cobra.Command {
 func runSetContainsCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
 	value, _ := cmd.Flags().GetString("value")
-	contains, err := set.Contains(newTimeoutContext(cmd), value)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	contains, err := set.Contains(ctx, value)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -141,7 +151,9 @@ func newSetRemoveCommand() *cobra.Command {
 func runSetRemoveCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
 	value, _ := cmd.Flags().GetString("value")
-	removed, err := set.Remove(newTimeoutContext(cmd), value)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	removed, err := set.Remove(ctx, value)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -159,7 +171,9 @@ func newSetSizeCommand() *cobra.Command {
 
 func runSetSizeCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
-	size, err := set.Len(newTimeoutContext(cmd))
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	size, err := set.Len(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -177,7 +191,9 @@ func newSetClearCommand() *cobra.Command {
 
 func runSetClearCommand(cmd *cobra.Command, _ []string) {
 	set := newSetFromName(cmd)
-	err := set.Clear(newTimeoutContext(cmd))
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := set.Clear(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

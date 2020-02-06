@@ -44,10 +44,12 @@ func newListCommand() *cobra.Command {
 	return cmd
 }
 
-func newListFromName(cmd *cobra.Command) list.List {
+func getList(cmd *cobra.Command) list.List {
 	name, _ := cmd.Flags().GetString("name")
-	database := newDatabaseFromName(cmd, name)
-	m, err := database.GetList(newTimeoutContext(cmd), getPrimitiveName(name))
+	database := getDatabase(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	m, err := database.GetList(ctx, name)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
@@ -63,8 +65,10 @@ func newListCreateCommand() *cobra.Command {
 }
 
 func runListCreateCommand(cmd *cobra.Command, _ []string) {
-	list := newListFromName(cmd)
-	list.Close()
+	list := getList(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	list.Close(ctx)
 	ExitWithOutput(fmt.Sprintf("Created %s", list.Name().String()))
 }
 
@@ -77,8 +81,10 @@ func newListDeleteCommand() *cobra.Command {
 }
 
 func runListDeleteCommand(cmd *cobra.Command, _ []string) {
-	list := newListFromName(cmd)
-	err := list.Delete()
+	list := getList(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := list.Delete(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -98,9 +104,11 @@ func newListGetCommand() *cobra.Command {
 }
 
 func runListGetCommand(cmd *cobra.Command, _ []string) {
-	list := newListFromName(cmd)
+	list := getList(cmd)
 	index, _ := cmd.Flags().GetInt("index")
-	value, err := list.Get(newTimeoutContext(cmd), index)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	value, err := list.Get(ctx, index)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else if value != nil {
@@ -122,9 +130,11 @@ func newListAppendCommand() *cobra.Command {
 }
 
 func runListAppendCommand(cmd *cobra.Command, _ []string) {
-	l := newListFromName(cmd)
+	l := getList(cmd)
 	value, _ := cmd.Flags().GetString("value")
-	err := l.Append(newTimeoutContext(cmd), []byte(value))
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := l.Append(ctx, []byte(value))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -146,10 +156,12 @@ func newListInsertCommand() *cobra.Command {
 }
 
 func runListInsertCommand(cmd *cobra.Command, _ []string) {
-	l := newListFromName(cmd)
+	l := getList(cmd)
 	index, _ := cmd.Flags().GetInt("index")
 	value, _ := cmd.Flags().GetString("value")
-	err := l.Insert(newTimeoutContext(cmd), int(index), []byte(value))
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := l.Insert(ctx, int(index), []byte(value))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -170,9 +182,11 @@ func newListRemoveCommand() *cobra.Command {
 }
 
 func runListRemoveCommand(cmd *cobra.Command, _ []string) {
-	m := newListFromName(cmd)
+	m := getList(cmd)
 	index, _ := cmd.Flags().GetInt("index")
-	value, err := m.Remove(newTimeoutContext(cmd), int(index))
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	value, err := m.Remove(ctx, int(index))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else if value != nil {
@@ -191,7 +205,7 @@ func newListItemsCommand() *cobra.Command {
 }
 
 func runListItemsCommand(cmd *cobra.Command, _ []string) {
-	m := newListFromName(cmd)
+	m := getList(cmd)
 	ch := make(chan []byte)
 	err := m.Items(context.TODO(), ch)
 	if err != nil {
@@ -211,8 +225,10 @@ func newListSizeCommand() *cobra.Command {
 }
 
 func runListSizeCommand(cmd *cobra.Command, _ []string) {
-	list := newListFromName(cmd)
-	size, err := list.Len(newTimeoutContext(cmd))
+	list := getList(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	size, err := list.Len(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -229,8 +245,10 @@ func newListClearCommand() *cobra.Command {
 }
 
 func runListClearCommand(cmd *cobra.Command, _ []string) {
-	list := newListFromName(cmd)
-	err := list.Clear(newTimeoutContext(cmd))
+	list := getList(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := list.Clear(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

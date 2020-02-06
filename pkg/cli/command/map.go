@@ -43,10 +43,12 @@ func newMapCommand() *cobra.Command {
 	return cmd
 }
 
-func newMapFromName(cmd *cobra.Command) _map.Map {
+func getMap(cmd *cobra.Command) _map.Map {
 	name, _ := cmd.Flags().GetString("name")
-	database := newDatabaseFromName(cmd, name)
-	m, err := database.GetMap(newTimeoutContext(cmd), getPrimitiveName(name))
+	database := getDatabase(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	m, err := database.GetMap(ctx, name)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
@@ -62,8 +64,10 @@ func newMapCreateCommand() *cobra.Command {
 }
 
 func runMapCreateCommand(cmd *cobra.Command, _ []string) {
-	_map := newMapFromName(cmd)
-	_map.Close()
+	_map := getMap(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	_map.Close(ctx)
 	ExitWithOutput(fmt.Sprintf("Created %s", _map.Name().String()))
 }
 
@@ -76,8 +80,10 @@ func newMapDeleteCommand() *cobra.Command {
 }
 
 func runMapDeleteCommand(cmd *cobra.Command, _ []string) {
-	_map := newMapFromName(cmd)
-	err := _map.Delete()
+	_map := getMap(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := _map.Delete(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -97,9 +103,11 @@ func newMapGetCommand() *cobra.Command {
 }
 
 func runMapGetCommand(cmd *cobra.Command, _ []string) {
-	_map := newMapFromName(cmd)
+	_map := getMap(cmd)
 	key, _ := cmd.Flags().GetString("key")
-	value, err := _map.Get(newTimeoutContext(cmd), key)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	value, err := _map.Get(ctx, key)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else if value != nil {
@@ -124,7 +132,7 @@ func newMapPutCommand() *cobra.Command {
 }
 
 func runMapPutCommand(cmd *cobra.Command, _ []string) {
-	m := newMapFromName(cmd)
+	m := getMap(cmd)
 	key, _ := cmd.Flags().GetString("key")
 	value, _ := cmd.Flags().GetString("value")
 	version, _ := cmd.Flags().GetInt64("version")
@@ -133,7 +141,9 @@ func runMapPutCommand(cmd *cobra.Command, _ []string) {
 		opts = append(opts, _map.IfVersion(version))
 	}
 
-	kv, err := m.Put(newTimeoutContext(cmd), key, []byte(value), opts...)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	kv, err := m.Put(ctx, key, []byte(value), opts...)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else if kv != nil {
@@ -156,7 +166,7 @@ func newMapRemoveCommand() *cobra.Command {
 }
 
 func runMapRemoveCommand(cmd *cobra.Command, _ []string) {
-	m := newMapFromName(cmd)
+	m := getMap(cmd)
 	key, _ := cmd.Flags().GetString("key")
 	version, _ := cmd.Flags().GetInt64("version")
 	opts := []_map.RemoveOption{}
@@ -164,7 +174,9 @@ func runMapRemoveCommand(cmd *cobra.Command, _ []string) {
 		opts = append(opts, _map.IfVersion(version))
 	}
 
-	value, err := m.Remove(newTimeoutContext(cmd), key, opts...)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	value, err := m.Remove(ctx, key, opts...)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else if value != nil {
@@ -183,7 +195,7 @@ func newMapKeysCommand() *cobra.Command {
 }
 
 func runMapKeysCommand(cmd *cobra.Command, _ []string) {
-	m := newMapFromName(cmd)
+	m := getMap(cmd)
 	ch := make(chan *_map.Entry)
 	err := m.Entries(context.TODO(), ch)
 	if err != nil {
@@ -203,8 +215,10 @@ func newMapSizeCommand() *cobra.Command {
 }
 
 func runMapSizeCommand(cmd *cobra.Command, _ []string) {
-	_map := newMapFromName(cmd)
-	size, err := _map.Len(newTimeoutContext(cmd))
+	_map := getMap(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	size, err := _map.Len(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -221,8 +235,10 @@ func newMapClearCommand() *cobra.Command {
 }
 
 func runMapClearCommand(cmd *cobra.Command, _ []string) {
-	_map := newMapFromName(cmd)
-	err := _map.Clear(newTimeoutContext(cmd))
+	_map := getMap(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := _map.Clear(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

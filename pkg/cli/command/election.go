@@ -39,10 +39,12 @@ func newElectionCommand() *cobra.Command {
 	return cmd
 }
 
-func newElectionFromName(cmd *cobra.Command) election.Election {
+func getElection(cmd *cobra.Command) election.Election {
 	name, _ := cmd.Flags().GetString("name")
-	database := newDatabaseFromName(cmd, name)
-	m, err := database.GetElection(newTimeoutContext(cmd), getPrimitiveName(name))
+	database := getDatabase(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	m, err := database.GetElection(ctx, name)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
@@ -58,8 +60,10 @@ func newElectionCreateCommand() *cobra.Command {
 }
 
 func runElectionCreateCommand(cmd *cobra.Command, _ []string) {
-	election := newElectionFromName(cmd)
-	election.Close()
+	election := getElection(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	election.Close(ctx)
 	ExitWithOutput(fmt.Sprintf("Created %s", election.Name().String()))
 }
 
@@ -72,8 +76,10 @@ func newElectionDeleteCommand() *cobra.Command {
 }
 
 func runElectionDeleteCommand(cmd *cobra.Command, _ []string) {
-	election := newElectionFromName(cmd)
-	err := election.Delete()
+	election := getElection(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := election.Delete(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -90,8 +96,10 @@ func newElectionGetCommand() *cobra.Command {
 }
 
 func runElectionGetCommand(cmd *cobra.Command, _ []string) {
-	election := newElectionFromName(cmd)
-	term, err := election.GetTerm(newTimeoutContext(cmd))
+	election := getElection(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	term, err := election.GetTerm(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -108,8 +116,10 @@ func newElectionEnterCommand() *cobra.Command {
 }
 
 func runElectionEnterCommand(cmd *cobra.Command, _ []string) {
-	election := newElectionFromName(cmd)
-	term, err := election.Enter(newTimeoutContext(cmd))
+	election := getElection(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	term, err := election.Enter(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -126,8 +136,10 @@ func newElectionLeaveCommand() *cobra.Command {
 }
 
 func runElectionLeaveCommand(cmd *cobra.Command, _ []string) {
-	election := newElectionFromName(cmd)
-	_, err := election.Leave(newTimeoutContext(cmd))
+	election := getElection(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	_, err := election.Leave(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

@@ -47,8 +47,10 @@ func printDatabases(databases []*client.Database, includeHeaders bool) {
 }
 
 func runDatabasesCommand(cmd *cobra.Command, _ []string) {
-	client := newClientFromEnv()
-	databases, err := client.GetDatabases(newTimeoutContext(cmd))
+	client := getClient(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	databases, err := client.GetDatabases(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

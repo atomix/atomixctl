@@ -20,128 +20,70 @@ import (
 	"github.com/atomix/go-client/pkg/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"strings"
 	"time"
 )
 
-const (
-	nameSep = "."
-)
-
 func addClientFlags(cmd *cobra.Command) {
+	viper.SetDefault("controller", ":5679")
+	viper.SetDefault("namespace", "default")
+	viper.SetDefault("app", "default")
 	viper.SetDefault("database", "")
+
+	cmd.PersistentFlags().String("controller", viper.GetString("controller"), "the controller address")
+	cmd.PersistentFlags().String("namespace", viper.GetString("namespace"), "the partition group namespace")
+	cmd.PersistentFlags().StringP("app", "a", viper.GetString("app"), "the application name")
 	cmd.PersistentFlags().StringP("database", "d", viper.GetString("database"), fmt.Sprintf("the database name (default %s)", viper.GetString("database")))
+	cmd.PersistentFlags().String("config", "", "config file (default: $HOME/.atomix/config.yaml)")
 	cmd.PersistentFlags().Duration("timeout", 15*time.Second, "the operation timeout")
-	viper.BindPFlag("database", cmd.PersistentFlags().Lookup("database"))
+
 	cmd.PersistentFlags().Lookup("database").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__atomix_get_databases"},
 	}
 }
 
-func newTimeoutContext(cmd *cobra.Command) context.Context {
-	timeout, _ := cmd.Flags().GetDuration("timeout")
-	ctx, _ := context.WithTimeout(context.Background(), timeout)
-	return ctx
+func getTimeoutContext(cmd *cobra.Command) (context.Context, context.CancelFunc) {
+	timeout, _ := cmd.PersistentFlags().GetDuration("timeout")
+	return context.WithTimeout(context.Background(), timeout)
 }
 
-func newClientFromEnv() *client.Client {
-	c, err := client.NewClient(
-		getClientController(),
-		client.WithNamespace(getClientNamespace()),
-		client.WithApplication(getClientApp()))
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	return c
+func getClientController(cmd *cobra.Command) string {
+	controller, _ := cmd.PersistentFlags().GetString("controller")
+	return controller
 }
 
-func newDatabaseFromEnv(cmd *cobra.Command) *client.Database {
-	c := newClientFromEnv()
-	d, err := c.GetDatabase(newTimeoutContext(cmd), getClientDatabase())
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	return d
+func getClientNamespace(cmd *cobra.Command) string {
+	namespace, _ := cmd.PersistentFlags().GetString("namespace")
+	return namespace
 }
 
-func newClientFromDatabase(name string) *client.Client {
-	c, err := client.NewClient(
-		getClientController(),
-		client.WithNamespace(getDatabaseNamespace(name)),
-		client.WithApplication(getClientApp()))
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	return c
+func getClientApp(cmd *cobra.Command) string {
+	app, _ := cmd.PersistentFlags().GetString("app")
+	return app
 }
 
-func newClientFromName(name string) *client.Client {
-	c, err := client.NewClient(getClientController(), client.WithNamespace(getClientNamespace()), client.WithApplication(getPrimitiveApp(name)))
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	return c
-}
-
-func newDatabaseFromName(cmd *cobra.Command, name string) *client.Database {
-	c := newClientFromName(name)
-	database, err := c.GetDatabase(newTimeoutContext(cmd), getClientDatabase())
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
+func getClientDatabase(cmd *cobra.Command) string {
+	database, _ := cmd.PersistentFlags().GetString("database")
 	return database
 }
 
-func splitName(name string) []string {
-	return strings.Split(name, nameSep)
-}
-
-func getDatabaseNamespace(name string) string {
-	nameParts := splitName(name)
-	if len(nameParts) == 2 {
-		return nameParts[0]
+func getClient(cmd *cobra.Command) *client.Client {
+	client, err := client.NewClient(
+		getClientController(cmd),
+		client.WithNamespace(getClientNamespace(cmd)),
+		client.WithApplication(getClientApp(cmd)))
+	if err != nil {
+		ExitWithError(ExitBadConnection, err)
 	}
-	return getClientNamespace()
+	return client
 }
 
-func getDatabaseName(name string) string {
-	nameParts := splitName(name)
-	return nameParts[len(nameParts)-1]
-}
-
-func setClientController(controller string) error {
-	return setConfig("controller", controller)
-}
-
-func getClientController() string {
-	return getConfig("controller")
-}
-
-func getClientNamespace() string {
-	return getConfig("namespace")
-}
-
-func setClientDatabase(database string) error {
-	return setConfig("database", database)
-}
-
-func getClientDatabase() string {
-	return getConfig("database")
-}
-
-func getClientApp() string {
-	return getConfig("app")
-}
-
-func getPrimitiveApp(name string) string {
-	nameParts := splitName(name)
-	if len(nameParts) == 2 {
-		return nameParts[0]
+func getDatabase(cmd *cobra.Command) *client.Database {
+	client := getClient(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	database, err := client.GetDatabase(ctx, getClientDatabase(cmd))
+	if err != nil {
+		ExitWithError(ExitBadConnection, err)
 	}
-	return getClientApp()
-}
-
-func getPrimitiveName(name string) string {
-	nameParts := splitName(name)
-	return nameParts[len(nameParts)-1]
+	return database
 }

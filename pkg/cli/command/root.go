@@ -16,7 +16,6 @@ package command
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 func GetRootCommand() *cobra.Command {
@@ -26,18 +25,7 @@ func GetRootCommand() *cobra.Command {
 		BashCompletionFunction: bashCompletion,
 	}
 
-	viper.SetDefault("controller", ":5679")
-	viper.SetDefault("namespace", "default")
-	viper.SetDefault("app", "default")
-
-	cmd.PersistentFlags().String("controller", viper.GetString("controller"), "the controller address")
-	cmd.PersistentFlags().String("namespace", viper.GetString("namespace"), "the partition group namespace")
-	cmd.PersistentFlags().StringP("app", "a", viper.GetString("app"), "the application name")
-	cmd.PersistentFlags().String("config", "", "config file (default: $HOME/.atomix/config.yaml)")
-
-	viper.BindPFlag("controller", cmd.PersistentFlags().Lookup("controller"))
-	viper.BindPFlag("namespace", cmd.PersistentFlags().Lookup("namespace"))
-	viper.BindPFlag("app", cmd.PersistentFlags().Lookup("app"))
+	addClientFlags(cmd)
 
 	cmd.AddCommand(newCompletionCommand())
 	cmd.AddCommand(newConfigCommand())

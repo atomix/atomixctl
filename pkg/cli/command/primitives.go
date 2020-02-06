@@ -16,8 +16,7 @@ package command
 
 import (
 	"fmt"
-	"github.com/atomix/api/proto/atomix/primitive"
-	primitivetype "github.com/atomix/go-client/pkg/client/primitive"
+	"github.com/atomix/go-client/pkg/client/primitive"
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
@@ -39,14 +38,16 @@ func newPrimitivesCommand() *cobra.Command {
 }
 
 func runPrimitivesCommand(cmd *cobra.Command, _ []string) {
-	database := newDatabaseFromEnv(cmd)
+	database := getDatabase(cmd)
 	t, _ := cmd.Flags().GetString("type")
-	var primitives []*primitive.PrimitiveInfo
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	var primitives []primitive.Metadata
 	var err error
 	if t == "" {
-		primitives, err = database.GetPrimitives(newTimeoutContext(cmd))
+		primitives, err = database.GetPrimitives(ctx)
 	} else {
-		primitives, err = database.GetPrimitives(newTimeoutContext(cmd), primitivetype.Type(t))
+		primitives, err = database.GetPrimitives(ctx, primitive.WithPrimitiveType(primitive.Type(t)))
 	}
 
 	if err != nil {
@@ -57,7 +58,7 @@ func runPrimitivesCommand(cmd *cobra.Command, _ []string) {
 	printPrimitives(primitives, !noHeaders)
 }
 
-func printPrimitives(primitives []*primitive.PrimitiveInfo, includeHeaders bool) {
+func printPrimitives(primitives []primitive.Metadata, includeHeaders bool) {
 	writer := new(tabwriter.Writer)
 	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	if includeHeaders {

@@ -40,10 +40,12 @@ func newCounterCommand() *cobra.Command {
 	return cmd
 }
 
-func newCounterFromName(cmd *cobra.Command) counter.Counter {
+func getCounter(cmd *cobra.Command) counter.Counter {
 	name, _ := cmd.Flags().GetString("name")
-	database := newDatabaseFromName(cmd, name)
-	m, err := database.GetCounter(newTimeoutContext(cmd), getPrimitiveName(name))
+	database := getDatabase(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	m, err := database.GetCounter(ctx, name)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
@@ -59,8 +61,10 @@ func newCounterCreateCommand() *cobra.Command {
 }
 
 func runCounterCreateCommand(cmd *cobra.Command, _ []string) {
-	counter := newCounterFromName(cmd)
-	counter.Close()
+	counter := getCounter(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	counter.Close(ctx)
 	ExitWithOutput(fmt.Sprintf("Created %s", counter.Name().String()))
 }
 
@@ -73,8 +77,10 @@ func newCounterDeleteCommand() *cobra.Command {
 }
 
 func runCounterDeleteCommand(cmd *cobra.Command, _ []string) {
-	counter := newCounterFromName(cmd)
-	err := counter.Delete()
+	counter := getCounter(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := counter.Delete(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -91,8 +97,10 @@ func newCounterGetCommand() *cobra.Command {
 }
 
 func runCounterGetCommand(cmd *cobra.Command, _ []string) {
-	counter := newCounterFromName(cmd)
-	value, err := counter.Get(newTimeoutContext(cmd))
+	counter := getCounter(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	value, err := counter.Get(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -112,9 +120,11 @@ func newCounterSetCommand() *cobra.Command {
 }
 
 func runCounterSetCommand(cmd *cobra.Command, _ []string) {
-	counter := newCounterFromName(cmd)
+	counter := getCounter(cmd)
 	value, _ := cmd.Flags().GetInt64("value")
-	err := counter.Set(newTimeoutContext(cmd), value)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := counter.Set(ctx, value)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -133,9 +143,11 @@ func newCounterIncrementCommand() *cobra.Command {
 }
 
 func runCounterIncrementCommand(cmd *cobra.Command, _ []string) {
-	counter := newCounterFromName(cmd)
+	counter := getCounter(cmd)
 	delta, _ := cmd.Flags().GetInt64("delta")
-	value, err := counter.Increment(newTimeoutContext(cmd), delta)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	value, err := counter.Increment(ctx, delta)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -154,9 +166,11 @@ func newCounterDecrementCommand() *cobra.Command {
 }
 
 func runCounterDecrementCommand(cmd *cobra.Command, _ []string) {
-	counter := newCounterFromName(cmd)
+	counter := getCounter(cmd)
 	delta, _ := cmd.Flags().GetInt64("delta")
-	value, err := counter.Decrement(newTimeoutContext(cmd), delta)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	value, err := counter.Decrement(ctx, delta)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {

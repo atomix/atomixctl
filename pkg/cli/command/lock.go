@@ -39,10 +39,12 @@ func newLockCommand() *cobra.Command {
 	return cmd
 }
 
-func newLockFromName(cmd *cobra.Command) lock.Lock {
+func getLock(cmd *cobra.Command) lock.Lock {
 	name, _ := cmd.Flags().GetString("name")
-	database := newDatabaseFromName(cmd, name)
-	m, err := database.GetLock(newTimeoutContext(cmd), getPrimitiveName(name))
+	database := getDatabase(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	m, err := database.GetLock(ctx, name)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	}
@@ -58,8 +60,10 @@ func newLockCreateCommand() *cobra.Command {
 }
 
 func runLockCreateCommand(cmd *cobra.Command, _ []string) {
-	lock := newLockFromName(cmd)
-	lock.Close()
+	lock := getLock(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	lock.Close(ctx)
 	ExitWithOutput(fmt.Sprintf("Created %s", lock.Name().String()))
 }
 
@@ -72,8 +76,10 @@ func newLockDeleteCommand() *cobra.Command {
 }
 
 func runLockDeleteCommand(cmd *cobra.Command, _ []string) {
-	lock := newLockFromName(cmd)
-	err := lock.Delete()
+	lock := getLock(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := lock.Delete(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -90,8 +96,10 @@ func newLockLockCommand() *cobra.Command {
 }
 
 func runLockLockCommand(cmd *cobra.Command, _ []string) {
-	lock := newLockFromName(cmd)
-	version, err := lock.Lock(newTimeoutContext(cmd))
+	lock := getLock(cmd)
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	version, err := lock.Lock(ctx)
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -110,17 +118,21 @@ func newLockGetCommand() *cobra.Command {
 }
 
 func runLockGetCommand(cmd *cobra.Command, _ []string) {
-	l := newLockFromName(cmd)
+	l := getLock(cmd)
 	version, _ := cmd.Flags().GetUint64("version")
 	if version == 0 {
-		locked, err := l.IsLocked(newTimeoutContext(cmd))
+		ctx, cancel := getTimeoutContext(cmd)
+		defer cancel()
+		locked, err := l.IsLocked(ctx)
 		if err != nil {
 			ExitWithError(ExitError, err)
 		} else {
 			ExitWithOutput(locked)
 		}
 	} else {
-		locked, err := l.IsLocked(newTimeoutContext(cmd), lock.IfVersion(version))
+		ctx, cancel := getTimeoutContext(cmd)
+		defer cancel()
+		locked, err := l.IsLocked(ctx, lock.IfVersion(version))
 		if err != nil {
 			ExitWithError(ExitError, err)
 		} else {
@@ -140,17 +152,21 @@ func newLockUnlockCommand() *cobra.Command {
 }
 
 func runLockUnlockCommand(cmd *cobra.Command, _ []string) {
-	l := newLockFromName(cmd)
+	l := getLock(cmd)
 	version, _ := cmd.Flags().GetUint64("version")
 	if version == 0 {
-		unlocked, err := l.Unlock(newTimeoutContext(cmd))
+		ctx, cancel := getTimeoutContext(cmd)
+		defer cancel()
+		unlocked, err := l.Unlock(ctx)
 		if err != nil {
 			ExitWithError(ExitError, err)
 		} else {
 			ExitWithOutput(unlocked)
 		}
 	} else {
-		unlocked, err := l.Unlock(newTimeoutContext(cmd), lock.IfVersion(version))
+		ctx, cancel := getTimeoutContext(cmd)
+		defer cancel()
+		unlocked, err := l.Unlock(ctx, lock.IfVersion(version))
 		if err != nil {
 			ExitWithError(ExitError, err)
 		} else {
