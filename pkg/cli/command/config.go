@@ -44,7 +44,7 @@ func newConfigGetCommand() *cobra.Command {
 		"controller",
 		"namespace",
 		"database",
-		"app",
+		"scope",
 	}
 	return &cobra.Command{
 		Use:       "get <key>",
@@ -64,7 +64,7 @@ func newConfigSetCommand() *cobra.Command {
 		"controller",
 		"namespace",
 		"database",
-		"app",
+		"scope",
 	}
 	return &cobra.Command{
 		Use:       "set <key> <value>",
@@ -89,7 +89,7 @@ func newConfigDeleteCommand() *cobra.Command {
 		"controller",
 		"namespace",
 		"database",
-		"app",
+		"scope",
 	}
 	return &cobra.Command{
 		Use:       "delete <key>",

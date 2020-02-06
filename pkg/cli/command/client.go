@@ -26,12 +26,10 @@ import (
 func addClientFlags(cmd *cobra.Command) {
 	viper.SetDefault("controller", ":5679")
 	viper.SetDefault("namespace", "default")
-	viper.SetDefault("app", "default")
+	viper.SetDefault("scope", "default")
 	viper.SetDefault("database", "")
 
-	cmd.PersistentFlags().String("controller", viper.GetString("controller"), "the controller address")
-	cmd.PersistentFlags().String("namespace", viper.GetString("namespace"), "the partition group namespace")
-	cmd.PersistentFlags().StringP("app", "a", viper.GetString("app"), "the application name")
+	cmd.PersistentFlags().StringP("scope", "s", viper.GetString("scope"), "the application scope")
 	cmd.PersistentFlags().StringP("database", "d", viper.GetString("database"), fmt.Sprintf("the database name (default %s)", viper.GetString("database")))
 	cmd.PersistentFlags().String("config", "", "config file (default: $HOME/.atomix/config.yaml)")
 	cmd.PersistentFlags().Duration("timeout", 15*time.Second, "the operation timeout")
@@ -46,19 +44,12 @@ func getTimeoutContext(cmd *cobra.Command) (context.Context, context.CancelFunc)
 	return context.WithTimeout(context.Background(), timeout)
 }
 
-func getClientController(cmd *cobra.Command) string {
-	controller, _ := cmd.PersistentFlags().GetString("controller")
-	return controller
+func getClientController() string {
+	return viper.GetString("controller")
 }
 
-func getClientNamespace(cmd *cobra.Command) string {
-	namespace, _ := cmd.PersistentFlags().GetString("namespace")
-	return namespace
-}
-
-func getClientApp(cmd *cobra.Command) string {
-	app, _ := cmd.PersistentFlags().GetString("app")
-	return app
+func getClientNamespace() string {
+	return viper.GetString("namespace")
 }
 
 func getClientDatabase(cmd *cobra.Command) string {
@@ -66,11 +57,16 @@ func getClientDatabase(cmd *cobra.Command) string {
 	return database
 }
 
+func getClientScope(cmd *cobra.Command) string {
+	app, _ := cmd.PersistentFlags().GetString("scope")
+	return app
+}
+
 func getClient(cmd *cobra.Command) *client.Client {
 	client, err := client.NewClient(
-		getClientController(cmd),
-		client.WithNamespace(getClientNamespace(cmd)),
-		client.WithApplication(getClientApp(cmd)))
+		getClientController(),
+		client.WithNamespace(getClientNamespace()),
+		client.WithApplication(getClientScope(cmd)))
 	if err != nil {
 		ExitWithError(ExitBadConnection, err)
 	}
