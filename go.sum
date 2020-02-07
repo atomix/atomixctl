@@ -101,6 +101,8 @@ github.com/atomix/go-client v0.0.0-20200206051325-cdc03bd1c8bc h1:084pbPBIyHqgYN
 github.com/atomix/go-client v0.0.0-20200206051325-cdc03bd1c8bc/go.mod h1:8Gdux/UtiBQK5nmzN9jtWXuH16T6JPNsAxUA2wY4xVk=
 github.com/atomix/go-client v0.0.0-20200206221139-c402aa6a5799 h1:1TBeoK8bjmBlInNlwQvlrT/UpI0ohaLmgo3/yRsYU1Q=
 github.com/atomix/go-client v0.0.0-20200206221139-c402aa6a5799/go.mod h1:i5iQlHfpHQH5nQ8+wltMGSejL2P0vFbLSHupI9u4uIY=
+github.com/atomix/go-client v0.0.0-20200207015816-e8f6466ebeca h1:1CcpGZiGQrS2IFtDSsTBPmjv38bW4u8mjAFxLDfmj+Y=
+github.com/atomix/go-client v0.0.0-20200207015816-e8f6466ebeca/go.mod h1:i5iQlHfpHQH5nQ8+wltMGSejL2P0vFbLSHupI9u4uIY=
 github.com/atomix/go-framework v0.0.0-20200123235029-e29fc7d6e104/go.mod h1:Dn7tjt5LIRA/qr5afQZDh9hdtvK82uQpMrADYIlVtfQ=
 github.com/atomix/go-framework v0.0.0-20200124003840-f24758b13aa2/go.mod h1:vo5K/v+rc5mohoZIw9vbyj+Y/EGGaEdF6XVkEvM9CSM=
 github.com/atomix/go-framework v0.0.0-20200202102454-440bc2678f1c/go.mod h1:EJ/rV5Eea5cPJ7z8LR5Ql/6c6mZEceeH84d7yX5o8No=
