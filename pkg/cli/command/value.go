@@ -25,7 +25,7 @@ import (
 
 func newValueCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set {add,contains,remove,size,clear}",
+		Use:   "value {get,set,watch}",
 		Short: "Manage the state of a distributed set",
 	}
 	addClientFlags(cmd)

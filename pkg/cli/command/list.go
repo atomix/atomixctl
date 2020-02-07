@@ -26,7 +26,7 @@ import (
 
 func newListCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list {put,get,append,insert,remove,items,size,clear}",
+		Use:   "list {put,get,append,insert,remove,items,size,clear,watch}",
 		Short: "Manage the state of a distributed list",
 	}
 	addClientFlags(cmd)

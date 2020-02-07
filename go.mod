@@ -2,8 +2,9 @@ module github.com/atomix/cli
 
 require (
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
-	github.com/atomix/api v0.0.0-20200206211058-f075fb5b6d1b
-	github.com/atomix/go-client v0.0.0-20200207023519-aba5d6d17c10
+	github.com/atomix/api v0.0.0-20200207212403-a55e2fa6e823
+	github.com/atomix/go-client v0.0.0-20200207222107-ee4ae47f0a5d
+	github.com/client9/misspell v0.3.4 // indirect
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/elazarl/goproxy v0.0.0-20190703090003-6125c262ffb0 // indirect
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
@@ -36,7 +37,7 @@ require (
 	golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa
 	golang.org/x/text v0.3.2
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
-	google.golang.org/grpc v1.23.1
+	google.golang.org/grpc v1.27.0
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/apimachinery v0.0.0-20190703205208-4cfb76a8bf76

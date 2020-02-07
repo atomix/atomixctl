@@ -99,6 +99,22 @@ func runCreateLockCommand(cmd *cobra.Command, args []string) {
 	ExitWithOutput(fmt.Sprintf("Created lock %s", lock.Name().String()))
 }
 
+func newCreateLogCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:  "log <name>",
+		Args: cobra.ExactArgs(1),
+		Run:  runCreateLogCommand,
+	}
+}
+
+func runCreateLogCommand(cmd *cobra.Command, args []string) {
+	log := getLog(cmd, args[0])
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	log.Close(ctx)
+	ExitWithOutput(fmt.Sprintf("Created log %s", log.Name().String()))
+}
+
 func newCreateMapCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "map <name>",

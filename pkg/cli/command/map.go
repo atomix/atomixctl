@@ -26,7 +26,7 @@ import (
 
 func newMapCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "map {put,get,remove,size,clear}",
+		Use:   "map {put,get,remove,size,clear,watch}",
 		Short: "Manage the state of a distributed map",
 	}
 	addClientFlags(cmd)
