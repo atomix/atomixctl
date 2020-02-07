@@ -16,7 +16,6 @@ package command
 
 import (
 	"context"
-	"fmt"
 	"github.com/atomix/go-client/pkg/client/list"
 	"github.com/spf13/cobra"
 	"strconv"
@@ -24,11 +23,15 @@ import (
 
 func newListCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list {create,put,get,append,insert,remove,items,size,clear,delete}",
+		Use:   "list {put,get,append,insert,remove,items,size,clear}",
 		Short: "Manage the state of a distributed list",
 	}
 	addClientFlags(cmd)
-	cmd.AddCommand(newListCreateCommand())
+	cmd.PersistentFlags().StringP("name", "n", "", "the list name")
+	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_lists"},
+	}
+	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newListGetCommand())
 	cmd.AddCommand(newListAppendCommand())
 	cmd.AddCommand(newListInsertCommand())
@@ -36,16 +39,7 @@ func newListCommand() *cobra.Command {
 	cmd.AddCommand(newListItemsCommand())
 	cmd.AddCommand(newListSizeCommand())
 	cmd.AddCommand(newListClearCommand())
-	cmd.AddCommand(newListDeleteCommand())
 	return cmd
-}
-
-func addListFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("name", "n", "", "the list name")
-	cmd.Flags().Lookup("name").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_lists"},
-	}
-	cmd.MarkPersistentFlagRequired("name")
 }
 
 func getListName(cmd *cobra.Command) string {
@@ -64,50 +58,12 @@ func getList(cmd *cobra.Command, name string) list.List {
 	return m
 }
 
-func newListCreateCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:  "create <name>",
-		Args: cobra.ExactArgs(1),
-		Run:  runListCreateCommand,
-	}
-}
-
-func runListCreateCommand(cmd *cobra.Command, args []string) {
-	list := getList(cmd, args[0])
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	list.Close(ctx)
-	ExitWithOutput(fmt.Sprintf("Created %s", list.Name().String()))
-}
-
-func newListDeleteCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:  "delete <name>",
-		Args: cobra.ExactArgs(1),
-		Run:  runListDeleteCommand,
-	}
-}
-
-func runListDeleteCommand(cmd *cobra.Command, args []string) {
-	list := getList(cmd, args[0])
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	err := list.Delete(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput(fmt.Sprintf("Deleted %s", list.Name().String()))
-	}
-}
-
 func newListGetCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:  "get <index>",
 		Args: cobra.ExactArgs(1),
 		Run:  runListGetCommand,
 	}
-	addListFlags(cmd)
-	return cmd
 }
 
 func runListGetCommand(cmd *cobra.Command, args []string) {
@@ -130,13 +86,11 @@ func runListGetCommand(cmd *cobra.Command, args []string) {
 }
 
 func newListAppendCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:  "append <value>",
 		Args: cobra.ExactArgs(1),
 		Run:  runListAppendCommand,
 	}
-	addListFlags(cmd)
-	return cmd
 }
 
 func runListAppendCommand(cmd *cobra.Command, args []string) {
@@ -153,13 +107,11 @@ func runListAppendCommand(cmd *cobra.Command, args []string) {
 }
 
 func newListInsertCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:  "insert <index> <value>",
 		Args: cobra.ExactArgs(2),
 		Run:  runListInsertCommand,
 	}
-	addListFlags(cmd)
-	return cmd
 }
 
 func runListInsertCommand(cmd *cobra.Command, args []string) {
@@ -186,7 +138,6 @@ func newListRemoveCommand() *cobra.Command {
 		Args: cobra.ExactArgs(1),
 		Run:  runListRemoveCommand,
 	}
-	addListFlags(cmd)
 	cmd.Flags().Int64P("version", "v", 0, "the entry version")
 	return cmd
 }
@@ -211,13 +162,11 @@ func runListRemoveCommand(cmd *cobra.Command, args []string) {
 }
 
 func newListItemsCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:  "items",
 		Args: cobra.NoArgs,
 		Run:  runListItemsCommand,
 	}
-	addListFlags(cmd)
-	return cmd
 }
 
 func runListItemsCommand(cmd *cobra.Command, _ []string) {
@@ -233,13 +182,11 @@ func runListItemsCommand(cmd *cobra.Command, _ []string) {
 }
 
 func newListSizeCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:  "size",
 		Args: cobra.NoArgs,
 		Run:  runListSizeCommand,
 	}
-	addListFlags(cmd)
-	return cmd
 }
 
 func runListSizeCommand(cmd *cobra.Command, _ []string) {
@@ -255,13 +202,11 @@ func runListSizeCommand(cmd *cobra.Command, _ []string) {
 }
 
 func newListClearCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:  "clear",
 		Args: cobra.NoArgs,
 		Run:  runListClearCommand,
 	}
-	addListFlags(cmd)
-	return cmd
 }
 
 func runListClearCommand(cmd *cobra.Command, _ []string) {

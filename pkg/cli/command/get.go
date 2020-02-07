@@ -14,29 +14,24 @@
 
 package command
 
-import (
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
-func GetRootCommand() *cobra.Command {
+func newGetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:                    "atomix",
-		Short:                  "Atomix command line client",
-		BashCompletionFunction: bashCompletion,
+		Use:   "get {databases, primitives}",
+		Short: "List resources in the cluster",
 	}
-
-	addClientFlags(cmd)
-
-	cmd.AddCommand(newCompletionCommand())
-	cmd.AddCommand(newConfigCommand())
-	cmd.AddCommand(newGetCommand())
-	cmd.AddCommand(newCreateCommand())
-	cmd.AddCommand(newDeleteCommand())
-	cmd.AddCommand(newCounterCommand())
-	cmd.AddCommand(newListCommand())
-	cmd.AddCommand(newElectionCommand())
-	cmd.AddCommand(newLockCommand())
-	cmd.AddCommand(newMapCommand())
-	cmd.AddCommand(newSetCommand())
+	cmd.AddCommand(newGetDatabasesCommand())
+	cmd.AddCommand(newGetPrimitivesCommand())
+	cmd.AddCommand(newGetCountersCommand())
+	cmd.AddCommand(newGetElectionsCommand())
+	cmd.AddCommand(newGetIndexedMapsCommand())
+	cmd.AddCommand(newGetLeaderLatchesCommand())
+	cmd.AddCommand(newGetListsCommand())
+	cmd.AddCommand(newGetLocksCommand())
+	cmd.AddCommand(newGetLogsCommand())
+	cmd.AddCommand(newGetMapsCommand())
+	cmd.AddCommand(newGetSetsCommand())
+	cmd.AddCommand(newGetValuesCommand())
 	return cmd
 }

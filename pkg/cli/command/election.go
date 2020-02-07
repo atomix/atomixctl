@@ -16,7 +16,6 @@ package command
 
 import (
 	"context"
-	"fmt"
 	"github.com/atomix/go-client/pkg/client/election"
 	"github.com/spf13/cobra"
 	"os"
@@ -26,23 +25,18 @@ import (
 
 func newElectionCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "election {create,enter,get,delete}",
+		Use:   "election {enter,get}",
 		Short: "Managed the state of a distributed leader election",
 	}
 	addClientFlags(cmd)
-	cmd.AddCommand(newElectionCreateCommand())
-	cmd.AddCommand(newElectionGetCommand())
-	cmd.AddCommand(newElectionEnterCommand())
-	cmd.AddCommand(newElectionDeleteCommand())
-	return cmd
-}
-
-func addElectionFlags(cmd *cobra.Command) {
-	cmd.Flags().StringP("name", "n", "", "the election name")
-	cmd.Flags().Lookup("name").Annotations = map[string][]string{
+	cmd.PersistentFlags().StringP("name", "n", "", "the election name")
+	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__atomix_get_elections"},
 	}
 	cmd.MarkPersistentFlagRequired("name")
+	cmd.AddCommand(newElectionGetCommand())
+	cmd.AddCommand(newElectionEnterCommand())
+	return cmd
 }
 
 func getElectionName(cmd *cobra.Command) string {
@@ -61,50 +55,12 @@ func getElection(cmd *cobra.Command, name string, id string) election.Election {
 	return m
 }
 
-func newElectionCreateCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:  "create <name>",
-		Args: cobra.ExactArgs(1),
-		Run:  runElectionCreateCommand,
-	}
-}
-
-func runElectionCreateCommand(cmd *cobra.Command, args []string) {
-	election := getElection(cmd, args[0], "")
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	election.Close(ctx)
-	ExitWithOutput(fmt.Sprintf("Created %s", election.Name().String()))
-}
-
-func newElectionDeleteCommand() *cobra.Command {
-	return &cobra.Command{
-		Use:  "delete <name>",
-		Args: cobra.ExactArgs(1),
-		Run:  runElectionDeleteCommand,
-	}
-}
-
-func runElectionDeleteCommand(cmd *cobra.Command, args []string) {
-	election := getElection(cmd, args[0], "")
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	err := election.Delete(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput(fmt.Sprintf("Deleted %s", election.Name().String()))
-	}
-}
-
 func newElectionGetCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:  "get",
 		Args: cobra.NoArgs,
 		Run:  runElectionGetCommand,
 	}
-	addElectionFlags(cmd)
-	return cmd
 }
 
 func runElectionGetCommand(cmd *cobra.Command, _ []string) {
@@ -120,13 +76,11 @@ func runElectionGetCommand(cmd *cobra.Command, _ []string) {
 }
 
 func newElectionEnterCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:  "enter <id>",
 		Args: cobra.ExactArgs(1),
 		Run:  runElectionEnterCommand,
 	}
-	addElectionFlags(cmd)
-	return cmd
 }
 
 func runElectionEnterCommand(cmd *cobra.Command, args []string) {

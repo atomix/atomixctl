@@ -23,11 +23,11 @@ import (
 	"time"
 )
 
-func newDatabasesCommand() *cobra.Command {
+func newGetDatabasesCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "databases",
 		Short: "Get a list of databases",
-		Run:   runDatabasesCommand,
+		Run:   runGetDatabasesCommand,
 	}
 	cmd.PersistentFlags().Duration("timeout", 15*time.Second, "the operation timeout")
 	cmd.Flags().Bool("no-headers", false, "exclude headers from the output")
@@ -46,7 +46,7 @@ func printDatabases(databases []*client.Database, includeHeaders bool) {
 	writer.Flush()
 }
 
-func runDatabasesCommand(cmd *cobra.Command, _ []string) {
+func runGetDatabasesCommand(cmd *cobra.Command, _ []string) {
 	client := getClient(cmd)
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
