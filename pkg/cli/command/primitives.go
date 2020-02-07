@@ -65,7 +65,7 @@ func printPrimitives(primitives []primitive.Metadata, includeHeaders bool) {
 		fmt.Fprintln(writer, "NAME\tSCOPE\tTYPE")
 	}
 	for _, primitive := range primitives {
-		fmt.Fprintln(writer, fmt.Sprintf("%s\t%s\t%s", primitive.Name.Name, primitive.Name.Namespace, primitive.Type))
+		fmt.Fprintln(writer, fmt.Sprintf("%s\t%s\t%s", primitive.Name.Name, primitive.Name.Scope, primitive.Type))
 	}
 	writer.Flush()
 }

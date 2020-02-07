@@ -33,6 +33,9 @@ func addClientFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().String("config", "", "config file (default: $HOME/.atomix/config.yaml)")
 	cmd.PersistentFlags().Duration("timeout", 15*time.Second, "the operation timeout")
 
+	cmd.PersistentFlags().Lookup("scope").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_scopes"},
+	}
 	cmd.PersistentFlags().Lookup("database").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__atomix_get_databases"},
 	}

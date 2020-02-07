@@ -24,7 +24,7 @@ import (
 
 const bashCompletion = `
 
-__atomix_override_flag_list=(--controller --namespace --app --database -d)
+__atomix_override_flag_list=(--scope -s --database -d)
 __atomix_override_flags()
 {
     local ${__atomix_override_flag_list[*]##*-} two_word_of of var
@@ -55,18 +55,30 @@ __atomix_override_flags()
 __atomix_get_databases() {
     local atomix_output out
     if atomix_output=$(atomix databases --no-headers 2>/dev/null); then
-        out=($(echo "${atomix_output}" | awk '{print $1}'))
+        out=($(echo "${atomix_output}" | awk '{print $2}'))
+        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
+    fi
+}
+
+__atomix_get_scopes() {
+    local atomix_output out
+    if atomix_output=$(atomix primitive --no-headers 2>/dev/null); then
+        out=($(echo "${atomix_output}" | awk '{print $2}'))
         COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
     fi
 }
 
 __atomix_primitive_types() {
-    echo "counter"
-    echo "election"
-    echo "list"
-    echo "lock"
-    echo "map"
-    echo "set"
+    echo "Counter"
+    echo "Election"
+    echo "IndexedMap"
+    echo "LeaderLatch"
+    echo "List"
+    echo "Lock"
+    echo "Log"
+    echo "Map"
+    echo "Set"
+    echo "Value"
 }
 
 __atomix_get_primitive_types() {
@@ -76,103 +88,113 @@ __atomix_get_primitive_types() {
     fi
 }
 
-__atomix_get_counters() {
+__atomix_get_primitives() {
     local atomix_output out
-    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=counter --no-headers 2>/dev/null); then
+    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=$1 --no-headers 2>/dev/null); then
         out=($(echo "${atomix_output}" | awk '{print $1}'))
         COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
     fi
+}
+
+__atomix_get_counters() {
+    __atomix_get_primitives "Counter"
 }
 
 __atomix_get_elections() {
-    local atomix_output out
-    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=election --no-headers 2>/dev/null); then
-        out=($(echo "${atomix_output}" | awk '{print $1}'))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
-    fi
+    __atomix_get_primitives "Election"
+}
+
+__atomix_get_indexed_maps() {
+    __atomix_get_primitives "IndexedMap"
+}
+
+__atomix_get_leader_latches() {
+    __atomix_get_primitives "LeaderLatch"
 }
 
 __atomix_get_lists() {
-    local atomix_output out
-    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=list --no-headers 2>/dev/null); then
-        out=($(echo "${atomix_output}" | awk '{print $1}'))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
-    fi
+    __atomix_get_primitives "List"
 }
 
 __atomix_get_locks() {
-    local atomix_output out
-    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=lock --no-headers 2>/dev/null); then
-        out=($(echo "${atomix_output}" | awk '{print $1}'))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
-    fi
+    __atomix_get_primitives "Lock"
+}
+
+__atomix_get_logs() {
+    __atomix_get_primitives "Log"
 }
 
 __atomix_get_maps() {
-    local atomix_output out
-    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=map --no-headers 2>/dev/null); then
-        out=($(echo "${atomix_output}" | awk '{print $1}'))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
-    fi
+    __atomix_get_primitives "Map"
 }
 
 __atomix_get_sets() {
-    local atomix_output out
-    if atomix_output=$(atomix primitives $(__atomix_override_flags) --type=set --no-headers 2>/dev/null); then
-        out=($(echo "${atomix_output}" | awk '{print $1}'))
-        COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
-    fi
+    __atomix_get_primitives "Set"
+}
+
+__atomix_get_values() {
+    __atomix_get_primitives "Value"
 }
 
 __atomix_custom_func() {
     case ${last_command} in
-        atomix_set_cluster | atomix_delete_cluster)
+        atomix_counter_delete)
             if [[ ${#nouns[@]} -eq 0 ]]; then
-                __atomix_get_clusters
+                __atomix_get_counters
             fi
             return
             ;;
-		atomix_remove_simulator)
+        atomix_election_delete)
             if [[ ${#nouns[@]} -eq 0 ]]; then
-                __atomix_get_simulators
-            fi
-            return
-			;;
-		
-		atomix_remove_network)
-            if [[ ${#nouns[@]} -eq 0 ]]; then
-                __atomix_get_networks
-            fi
-            return
-            ;;	
-			
-        atomix_get_logs | atomix_fetch_logs | atomix_debug | atomix_ssh)
-            if [[ ${#nouns[@]} -eq 0 ]]; then
-                __atomix_get_nodes
+                __atomix_get_elections
             fi
             return
             ;;
-        atomix_run_test)
+        atomix_indexed_map_delete)
             if [[ ${#nouns[@]} -eq 0 ]]; then
-                __atomix_get_tests
+                __atomix_get_indexed_maps
             fi
             return
             ;;
-        atomix_run_test-suite)
+        atomix_leader_latch_delete)
             if [[ ${#nouns[@]} -eq 0 ]]; then
-                __atomix_get_test_suites
+                __atomix_get_leader_latches
             fi
             return
             ;;
-        atomix_run_benchmark)
+        atomix_list_delete)
             if [[ ${#nouns[@]} -eq 0 ]]; then
-                __atomix_get_benchmarks
+                __atomix_get_lists
             fi
             return
             ;;
-        atomix_run_bench-suite)
+        atomix_lock_delete)
             if [[ ${#nouns[@]} -eq 0 ]]; then
-                __atomix_get_bench_suites
+                __atomix_get_locks
+            fi
+            return
+            ;;
+        atomix_log_delete)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __atomix_get_logs
+            fi
+            return
+            ;;
+        atomix_map_delete)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __atomix_get_maps
+            fi
+            return
+            ;;
+        atomix_set_delete)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __atomix_get_sets
+            fi
+            return
+            ;;
+        atomix_value_delete)
+            if [[ ${#nouns[@]} -eq 0 ]]; then
+                __atomix_get_values
             fi
             return
             ;;
