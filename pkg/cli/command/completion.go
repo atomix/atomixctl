@@ -62,23 +62,23 @@ __atomix_get_databases() {
 
 __atomix_get_scopes() {
     local atomix_output out
-    if atomix_output=$(atomix primitive --no-headers 2>/dev/null); then
+    if atomix_output=$(atomix primitives --no-headers 2>/dev/null); then
         out=($(echo "${atomix_output}" | awk '{print $2}'))
         COMPREPLY=( $( compgen -W "${out[*]}" -- "$cur" ) )
     fi
 }
 
 __atomix_primitive_types() {
-    echo "Counter"
-    echo "Election"
-    echo "IndexedMap"
-    echo "LeaderLatch"
-    echo "List"
-    echo "Lock"
-    echo "Log"
-    echo "Map"
-    echo "Set"
-    echo "Value"
+    echo "counter"
+    echo "election"
+    echo "indexed-map"
+    echo "leader-latch"
+    echo "list"
+    echo "lock"
+    echo "log"
+    echo "map"
+    echo "set"
+    echo "value"
 }
 
 __atomix_get_primitive_types() {
@@ -97,43 +97,43 @@ __atomix_get_primitives() {
 }
 
 __atomix_get_counters() {
-    __atomix_get_primitives "Counter"
+    __atomix_get_primitives "counter"
 }
 
 __atomix_get_elections() {
-    __atomix_get_primitives "Election"
+    __atomix_get_primitives "election"
 }
 
 __atomix_get_indexed_maps() {
-    __atomix_get_primitives "IndexedMap"
+    __atomix_get_primitives "indexed-map"
 }
 
 __atomix_get_leader_latches() {
-    __atomix_get_primitives "LeaderLatch"
+    __atomix_get_primitives "leader-latch"
 }
 
 __atomix_get_lists() {
-    __atomix_get_primitives "List"
+    __atomix_get_primitives "list"
 }
 
 __atomix_get_locks() {
-    __atomix_get_primitives "Lock"
+    __atomix_get_primitives "lock"
 }
 
 __atomix_get_logs() {
-    __atomix_get_primitives "Log"
+    __atomix_get_primitives "log"
 }
 
 __atomix_get_maps() {
-    __atomix_get_primitives "Map"
+    __atomix_get_primitives "map"
 }
 
 __atomix_get_sets() {
-    __atomix_get_primitives "Set"
+    __atomix_get_primitives "set"
 }
 
 __atomix_get_values() {
-    __atomix_get_primitives "Value"
+    __atomix_get_primitives "value"
 }
 
 __atomix_custom_func() {

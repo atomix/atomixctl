@@ -17,6 +17,7 @@ package command
 import (
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/primitive"
+	"github.com/iancoleman/strcase"
 	"github.com/spf13/cobra"
 	"os"
 	"text/tabwriter"
@@ -39,15 +40,15 @@ func newPrimitivesCommand() *cobra.Command {
 
 func runPrimitivesCommand(cmd *cobra.Command, _ []string) {
 	database := getDatabase(cmd)
-	t, _ := cmd.Flags().GetString("type")
+	typeName, _ := cmd.Flags().GetString("type")
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	var primitives []primitive.Metadata
 	var err error
-	if t == "" {
+	if typeName == "" {
 		primitives, err = database.GetPrimitives(ctx)
 	} else {
-		primitives, err = database.GetPrimitives(ctx, primitive.WithPrimitiveType(primitive.Type(t)))
+		primitives, err = database.GetPrimitives(ctx, primitive.WithPrimitiveType(primitive.Type(strcase.ToCamel(typeName))))
 	}
 
 	if err != nil {
@@ -65,7 +66,7 @@ func printPrimitives(primitives []primitive.Metadata, includeHeaders bool) {
 		fmt.Fprintln(writer, "NAME\tSCOPE\tTYPE")
 	}
 	for _, primitive := range primitives {
-		fmt.Fprintln(writer, fmt.Sprintf("%s\t%s\t%s", primitive.Name.Name, primitive.Name.Scope, primitive.Type))
+		fmt.Fprintln(writer, fmt.Sprintf("%s\t%s\t%s", primitive.Name.Name, primitive.Name.Scope, strcase.ToKebab(string(primitive.Type))))
 	}
 	writer.Flush()
 }

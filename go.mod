@@ -18,6 +18,7 @@ require (
 	github.com/googleapis/gnostic v0.3.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0
+	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/inconshreveable/mousetrap v1.0.0
 	github.com/magiconair/properties v1.8.1
 	github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e // indirect
