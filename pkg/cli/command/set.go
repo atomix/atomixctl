@@ -26,11 +26,6 @@ func newSetCommand() *cobra.Command {
 		Short: "Manage the state of a distributed set",
 	}
 	addClientFlags(cmd)
-	cmd.PersistentFlags().StringP("name", "n", "", "the set name")
-	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_sets"},
-	}
-	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newSetCreateCommand())
 	cmd.AddCommand(newSetAddCommand())
 	cmd.AddCommand(newSetContainsCommand())
@@ -41,8 +36,20 @@ func newSetCommand() *cobra.Command {
 	return cmd
 }
 
-func newSetFromName(cmd *cobra.Command) set.Set {
+func addSetFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("name", "n", "", "the set name")
+	cmd.Flags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_sets"},
+	}
+	cmd.MarkPersistentFlagRequired("name")
+}
+
+func getSetName(cmd *cobra.Command) string {
 	name, _ := cmd.Flags().GetString("name")
+	return name
+}
+
+func newSetFromName(cmd *cobra.Command, name string) set.Set {
 	database := getDatabase(cmd)
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
@@ -55,14 +62,14 @@ func newSetFromName(cmd *cobra.Command) set.Set {
 
 func newSetCreateCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:  "create",
-		Args: cobra.NoArgs,
+		Use:  "create <name>",
+		Args: cobra.ExactArgs(1),
 		Run:  runSetCreateCommand,
 	}
 }
 
-func runSetCreateCommand(cmd *cobra.Command, _ []string) {
-	set := newSetFromName(cmd)
+func runSetCreateCommand(cmd *cobra.Command, args []string) {
+	set := newSetFromName(cmd, args[0])
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	set.Close(ctx)
@@ -71,14 +78,14 @@ func runSetCreateCommand(cmd *cobra.Command, _ []string) {
 
 func newSetDeleteCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:  "delete",
-		Args: cobra.NoArgs,
+		Use:  "delete <name>",
+		Args: cobra.ExactArgs(1),
 		Run:  runSetDeleteCommand,
 	}
 }
 
-func runSetDeleteCommand(cmd *cobra.Command, _ []string) {
-	set := newSetFromName(cmd)
+func runSetDeleteCommand(cmd *cobra.Command, args []string) {
+	set := newSetFromName(cmd, args[0])
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	err := set.Delete(ctx)
@@ -91,18 +98,17 @@ func runSetDeleteCommand(cmd *cobra.Command, _ []string) {
 
 func newSetAddCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "add",
-		Args: cobra.NoArgs,
+		Use:  "add <value>",
+		Args: cobra.ExactArgs(1),
 		Run:  runSetAddCommand,
 	}
-	cmd.Flags().StringP("value", "v", "", "the value to add")
-	cmd.MarkFlagRequired("value")
+	addSetFlags(cmd)
 	return cmd
 }
 
-func runSetAddCommand(cmd *cobra.Command, _ []string) {
-	set := newSetFromName(cmd)
-	value, _ := cmd.Flags().GetString("value")
+func runSetAddCommand(cmd *cobra.Command, args []string) {
+	set := newSetFromName(cmd, getSetName(cmd))
+	value := args[0]
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	added, err := set.Add(ctx, value)
@@ -115,18 +121,17 @@ func runSetAddCommand(cmd *cobra.Command, _ []string) {
 
 func newSetContainsCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "contains",
-		Args: cobra.NoArgs,
+		Use:  "contains <value>",
+		Args: cobra.ExactArgs(1),
 		Run:  runSetContainsCommand,
 	}
-	cmd.Flags().StringP("value", "v", "", "the value to check")
-	cmd.MarkFlagRequired("value")
+	addSetFlags(cmd)
 	return cmd
 }
 
-func runSetContainsCommand(cmd *cobra.Command, _ []string) {
-	set := newSetFromName(cmd)
-	value, _ := cmd.Flags().GetString("value")
+func runSetContainsCommand(cmd *cobra.Command, args []string) {
+	set := newSetFromName(cmd, getSetName(cmd))
+	value := args[0]
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	contains, err := set.Contains(ctx, value)
@@ -139,18 +144,17 @@ func runSetContainsCommand(cmd *cobra.Command, _ []string) {
 
 func newSetRemoveCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "remove",
-		Args: cobra.NoArgs,
+		Use:  "remove <value>",
+		Args: cobra.ExactArgs(1),
 		Run:  runSetRemoveCommand,
 	}
-	cmd.Flags().StringP("value", "v", "", "the value to remove")
-	cmd.MarkFlagRequired("value")
+	addSetFlags(cmd)
 	return cmd
 }
 
-func runSetRemoveCommand(cmd *cobra.Command, _ []string) {
-	set := newSetFromName(cmd)
-	value, _ := cmd.Flags().GetString("value")
+func runSetRemoveCommand(cmd *cobra.Command, args []string) {
+	set := newSetFromName(cmd, getSetName(cmd))
+	value := args[0]
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	removed, err := set.Remove(ctx, value)
@@ -162,15 +166,17 @@ func runSetRemoveCommand(cmd *cobra.Command, _ []string) {
 }
 
 func newSetSizeCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "size",
 		Args: cobra.NoArgs,
 		Run:  runSetSizeCommand,
 	}
+	addSetFlags(cmd)
+	return cmd
 }
 
 func runSetSizeCommand(cmd *cobra.Command, _ []string) {
-	set := newSetFromName(cmd)
+	set := newSetFromName(cmd, getSetName(cmd))
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	size, err := set.Len(ctx)
@@ -182,15 +188,17 @@ func runSetSizeCommand(cmd *cobra.Command, _ []string) {
 }
 
 func newSetClearCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "clear",
 		Args: cobra.NoArgs,
 		Run:  runSetClearCommand,
 	}
+	addSetFlags(cmd)
+	return cmd
 }
 
 func runSetClearCommand(cmd *cobra.Command, _ []string) {
-	set := newSetFromName(cmd)
+	set := newSetFromName(cmd, getSetName(cmd))
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	err := set.Clear(ctx)

@@ -31,6 +31,10 @@ const (
 	ExitBadArgs = 128
 )
 
+func Output(output ...interface{}) {
+	fmt.Fprintln(os.Stdout, output...)
+}
+
 func ExitWithOutput(output ...interface{}) {
 	fmt.Fprintln(os.Stdout, output...)
 	os.Exit(ExitSuccess)

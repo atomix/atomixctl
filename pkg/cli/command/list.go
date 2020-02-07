@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/list"
 	"github.com/spf13/cobra"
+	"strconv"
 )
 
 func newListCommand() *cobra.Command {
@@ -27,11 +28,6 @@ func newListCommand() *cobra.Command {
 		Short: "Manage the state of a distributed list",
 	}
 	addClientFlags(cmd)
-	cmd.PersistentFlags().StringP("name", "n", "", "the list name")
-	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_lists"},
-	}
-	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newListCreateCommand())
 	cmd.AddCommand(newListGetCommand())
 	cmd.AddCommand(newListAppendCommand())
@@ -44,8 +40,20 @@ func newListCommand() *cobra.Command {
 	return cmd
 }
 
-func getList(cmd *cobra.Command) list.List {
+func addListFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("name", "n", "", "the list name")
+	cmd.Flags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_lists"},
+	}
+	cmd.MarkPersistentFlagRequired("name")
+}
+
+func getListName(cmd *cobra.Command) string {
 	name, _ := cmd.Flags().GetString("name")
+	return name
+}
+
+func getList(cmd *cobra.Command, name string) list.List {
 	database := getDatabase(cmd)
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
@@ -58,14 +66,14 @@ func getList(cmd *cobra.Command) list.List {
 
 func newListCreateCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:  "create",
-		Args: cobra.NoArgs,
+		Use:  "create <name>",
+		Args: cobra.ExactArgs(1),
 		Run:  runListCreateCommand,
 	}
 }
 
-func runListCreateCommand(cmd *cobra.Command, _ []string) {
-	list := getList(cmd)
+func runListCreateCommand(cmd *cobra.Command, args []string) {
+	list := getList(cmd, args[0])
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	list.Close(ctx)
@@ -74,14 +82,14 @@ func runListCreateCommand(cmd *cobra.Command, _ []string) {
 
 func newListDeleteCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:  "delete",
-		Args: cobra.NoArgs,
+		Use:  "delete <name>",
+		Args: cobra.ExactArgs(1),
 		Run:  runListDeleteCommand,
 	}
 }
 
-func runListDeleteCommand(cmd *cobra.Command, _ []string) {
-	list := getList(cmd)
+func runListDeleteCommand(cmd *cobra.Command, args []string) {
+	list := getList(cmd, args[0])
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	err := list.Delete(ctx)
@@ -94,18 +102,21 @@ func runListDeleteCommand(cmd *cobra.Command, _ []string) {
 
 func newListGetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "get",
-		Args: cobra.NoArgs,
+		Use:  "get <index>",
+		Args: cobra.ExactArgs(1),
 		Run:  runListGetCommand,
 	}
-	cmd.Flags().IntP("index", "i", -1, "the index to get")
-	cmd.MarkFlagRequired("index")
+	addListFlags(cmd)
 	return cmd
 }
 
-func runListGetCommand(cmd *cobra.Command, _ []string) {
-	list := getList(cmd)
-	index, _ := cmd.Flags().GetInt("index")
+func runListGetCommand(cmd *cobra.Command, args []string) {
+	list := getList(cmd, getListName(cmd))
+	indexStr := args[0]
+	index, err := strconv.Atoi(indexStr)
+	if err != nil {
+		ExitWithError(ExitBadArgs, err)
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	value, err := list.Get(ctx, index)
@@ -120,18 +131,17 @@ func runListGetCommand(cmd *cobra.Command, _ []string) {
 
 func newListAppendCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "append",
-		Args: cobra.NoArgs,
+		Use:  "append <value>",
+		Args: cobra.ExactArgs(1),
 		Run:  runListAppendCommand,
 	}
-	cmd.Flags().StringP("value", "v", "", "the value to append")
-	cmd.MarkFlagRequired("value")
+	addListFlags(cmd)
 	return cmd
 }
 
-func runListAppendCommand(cmd *cobra.Command, _ []string) {
-	l := getList(cmd)
-	value, _ := cmd.Flags().GetString("value")
+func runListAppendCommand(cmd *cobra.Command, args []string) {
+	l := getList(cmd, getListName(cmd))
+	value := args[0]
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	err := l.Append(ctx, []byte(value))
@@ -144,24 +154,25 @@ func runListAppendCommand(cmd *cobra.Command, _ []string) {
 
 func newListInsertCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "insert",
-		Args: cobra.NoArgs,
+		Use:  "insert <index> <value>",
+		Args: cobra.ExactArgs(2),
 		Run:  runListInsertCommand,
 	}
-	cmd.Flags().IntP("index", "i", -1, "the index to which to insert the value")
-	cmd.MarkFlagRequired("index")
-	cmd.Flags().StringP("value", "v", "", "the value to insert")
-	cmd.MarkFlagRequired("value")
+	addListFlags(cmd)
 	return cmd
 }
 
-func runListInsertCommand(cmd *cobra.Command, _ []string) {
-	l := getList(cmd)
-	index, _ := cmd.Flags().GetInt("index")
-	value, _ := cmd.Flags().GetString("value")
+func runListInsertCommand(cmd *cobra.Command, args []string) {
+	l := getList(cmd, getListName(cmd))
+	indexStr := args[0]
+	index, err := strconv.Atoi(indexStr)
+	if err != nil {
+		ExitWithError(ExitBadArgs, err)
+	}
+	value := args[1]
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	err := l.Insert(ctx, int(index), []byte(value))
+	err = l.Insert(ctx, int(index), []byte(value))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -171,19 +182,22 @@ func runListInsertCommand(cmd *cobra.Command, _ []string) {
 
 func newListRemoveCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "remove",
-		Args: cobra.NoArgs,
+		Use:  "remove <index>",
+		Args: cobra.ExactArgs(1),
 		Run:  runListRemoveCommand,
 	}
-	cmd.Flags().IntP("index", "i", -1, "the index to remove")
-	cmd.MarkFlagRequired("index")
+	addListFlags(cmd)
 	cmd.Flags().Int64P("version", "v", 0, "the entry version")
 	return cmd
 }
 
-func runListRemoveCommand(cmd *cobra.Command, _ []string) {
-	m := getList(cmd)
-	index, _ := cmd.Flags().GetInt("index")
+func runListRemoveCommand(cmd *cobra.Command, args []string) {
+	m := getList(cmd, getListName(cmd))
+	indexStr := args[0]
+	index, err := strconv.Atoi(indexStr)
+	if err != nil {
+		ExitWithError(ExitBadArgs, err)
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	value, err := m.Remove(ctx, int(index))
@@ -197,15 +211,17 @@ func runListRemoveCommand(cmd *cobra.Command, _ []string) {
 }
 
 func newListItemsCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "items",
 		Args: cobra.NoArgs,
 		Run:  runListItemsCommand,
 	}
+	addListFlags(cmd)
+	return cmd
 }
 
 func runListItemsCommand(cmd *cobra.Command, _ []string) {
-	m := getList(cmd)
+	m := getList(cmd, getListName(cmd))
 	ch := make(chan []byte)
 	err := m.Items(context.TODO(), ch)
 	if err != nil {
@@ -217,15 +233,17 @@ func runListItemsCommand(cmd *cobra.Command, _ []string) {
 }
 
 func newListSizeCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "size",
 		Args: cobra.NoArgs,
 		Run:  runListSizeCommand,
 	}
+	addListFlags(cmd)
+	return cmd
 }
 
 func runListSizeCommand(cmd *cobra.Command, _ []string) {
-	list := getList(cmd)
+	list := getList(cmd, getListName(cmd))
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	size, err := list.Len(ctx)
@@ -237,15 +255,17 @@ func runListSizeCommand(cmd *cobra.Command, _ []string) {
 }
 
 func newListClearCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "clear",
 		Args: cobra.NoArgs,
 		Run:  runListClearCommand,
 	}
+	addListFlags(cmd)
+	return cmd
 }
 
 func runListClearCommand(cmd *cobra.Command, _ []string) {
-	list := getList(cmd)
+	list := getList(cmd, getListName(cmd))
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	err := list.Clear(ctx)

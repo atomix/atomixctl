@@ -27,11 +27,6 @@ func newMapCommand() *cobra.Command {
 		Short: "Manage the state of a distributed map",
 	}
 	addClientFlags(cmd)
-	cmd.PersistentFlags().StringP("name", "n", "", "the map name")
-	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_maps"},
-	}
-	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newMapCreateCommand())
 	cmd.AddCommand(newMapGetCommand())
 	cmd.AddCommand(newMapPutCommand())
@@ -43,8 +38,20 @@ func newMapCommand() *cobra.Command {
 	return cmd
 }
 
-func getMap(cmd *cobra.Command) _map.Map {
+func addMapFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("name", "n", "", "the map name")
+	cmd.Flags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_maps"},
+	}
+	cmd.MarkPersistentFlagRequired("name")
+}
+
+func getMapName(cmd *cobra.Command) string {
 	name, _ := cmd.Flags().GetString("name")
+	return name
+}
+
+func getMap(cmd *cobra.Command, name string) _map.Map {
 	database := getDatabase(cmd)
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
@@ -57,14 +64,14 @@ func getMap(cmd *cobra.Command) _map.Map {
 
 func newMapCreateCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:  "create",
-		Args: cobra.NoArgs,
+		Use:  "create <name>",
+		Args: cobra.ExactArgs(1),
 		Run:  runMapCreateCommand,
 	}
 }
 
-func runMapCreateCommand(cmd *cobra.Command, _ []string) {
-	_map := getMap(cmd)
+func runMapCreateCommand(cmd *cobra.Command, args []string) {
+	_map := getMap(cmd, args[0])
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	_map.Close(ctx)
@@ -73,14 +80,14 @@ func runMapCreateCommand(cmd *cobra.Command, _ []string) {
 
 func newMapDeleteCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:  "delete",
-		Args: cobra.NoArgs,
+		Use:  "delete <name>",
+		Args: cobra.ExactArgs(1),
 		Run:  runMapDeleteCommand,
 	}
 }
 
-func runMapDeleteCommand(cmd *cobra.Command, _ []string) {
-	_map := getMap(cmd)
+func runMapDeleteCommand(cmd *cobra.Command, args []string) {
+	_map := getMap(cmd, args[0])
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	err := _map.Delete(ctx)
@@ -93,18 +100,17 @@ func runMapDeleteCommand(cmd *cobra.Command, _ []string) {
 
 func newMapGetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "get",
-		Args: cobra.NoArgs,
+		Use:  "get <key>",
+		Args: cobra.ExactArgs(1),
 		Run:  runMapGetCommand,
 	}
-	cmd.Flags().StringP("key", "k", "", "the key to get")
-	cmd.MarkFlagRequired("key")
+	addMapFlags(cmd)
 	return cmd
 }
 
-func runMapGetCommand(cmd *cobra.Command, _ []string) {
-	_map := getMap(cmd)
-	key, _ := cmd.Flags().GetString("key")
+func runMapGetCommand(cmd *cobra.Command, args []string) {
+	_map := getMap(cmd, getMapName(cmd))
+	key := args[0]
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	value, err := _map.Get(ctx, key)
@@ -119,22 +125,19 @@ func runMapGetCommand(cmd *cobra.Command, _ []string) {
 
 func newMapPutCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "put",
-		Args: cobra.NoArgs,
+		Use:  "put <key> <value>",
+		Args: cobra.ExactArgs(2),
 		Run:  runMapPutCommand,
 	}
-	cmd.Flags().StringP("key", "k", "", "the key to put")
-	cmd.MarkFlagRequired("key")
-	cmd.Flags().StringP("value", "v", "", "the value to put into the map")
-	cmd.MarkFlagRequired("value")
 	cmd.Flags().Int64("version", 0, "the entry version")
+	addMapFlags(cmd)
 	return cmd
 }
 
-func runMapPutCommand(cmd *cobra.Command, _ []string) {
-	m := getMap(cmd)
-	key, _ := cmd.Flags().GetString("key")
-	value, _ := cmd.Flags().GetString("value")
+func runMapPutCommand(cmd *cobra.Command, args []string) {
+	m := getMap(cmd, getMapName(cmd))
+	key := args[0]
+	value := args[1]
 	version, _ := cmd.Flags().GetInt64("version")
 	opts := []_map.PutOption{}
 	if version > 0 {
@@ -155,19 +158,18 @@ func runMapPutCommand(cmd *cobra.Command, _ []string) {
 
 func newMapRemoveCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "remove",
-		Args: cobra.NoArgs,
+		Use:  "remove <key>",
+		Args: cobra.ExactArgs(1),
 		Run:  runMapRemoveCommand,
 	}
-	cmd.Flags().StringP("key", "k", "", "the key to remove")
-	cmd.MarkFlagRequired("key")
 	cmd.Flags().Int64("version", 0, "the entry version")
+	addMapFlags(cmd)
 	return cmd
 }
 
-func runMapRemoveCommand(cmd *cobra.Command, _ []string) {
-	m := getMap(cmd)
-	key, _ := cmd.Flags().GetString("key")
+func runMapRemoveCommand(cmd *cobra.Command, args []string) {
+	m := getMap(cmd, getMapName(cmd))
+	key := args[0]
 	version, _ := cmd.Flags().GetInt64("version")
 	opts := []_map.RemoveOption{}
 	if version > 0 {
@@ -187,15 +189,17 @@ func runMapRemoveCommand(cmd *cobra.Command, _ []string) {
 }
 
 func newMapKeysCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "keys",
 		Args: cobra.NoArgs,
 		Run:  runMapKeysCommand,
 	}
+	addMapFlags(cmd)
+	return cmd
 }
 
 func runMapKeysCommand(cmd *cobra.Command, _ []string) {
-	m := getMap(cmd)
+	m := getMap(cmd, getMapName(cmd))
 	ch := make(chan *_map.Entry)
 	err := m.Entries(context.TODO(), ch)
 	if err != nil {
@@ -207,15 +211,17 @@ func runMapKeysCommand(cmd *cobra.Command, _ []string) {
 }
 
 func newMapSizeCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "size",
 		Args: cobra.NoArgs,
 		Run:  runMapSizeCommand,
 	}
+	addMapFlags(cmd)
+	return cmd
 }
 
 func runMapSizeCommand(cmd *cobra.Command, _ []string) {
-	_map := getMap(cmd)
+	_map := getMap(cmd, getMapName(cmd))
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	size, err := _map.Len(ctx)
@@ -227,15 +233,17 @@ func runMapSizeCommand(cmd *cobra.Command, _ []string) {
 }
 
 func newMapClearCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "clear",
 		Args: cobra.NoArgs,
 		Run:  runMapClearCommand,
 	}
+	addMapFlags(cmd)
+	return cmd
 }
 
 func runMapClearCommand(cmd *cobra.Command, _ []string) {
-	_map := getMap(cmd)
+	_map := getMap(cmd, getMapName(cmd))
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	err := _map.Clear(ctx)

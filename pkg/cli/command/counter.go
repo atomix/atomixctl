@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/counter"
 	"github.com/spf13/cobra"
+	"strconv"
 )
 
 func newCounterCommand() *cobra.Command {
@@ -26,11 +27,6 @@ func newCounterCommand() *cobra.Command {
 		Short: "Manage the state of a distributed counter",
 	}
 	addClientFlags(cmd)
-	cmd.PersistentFlags().StringP("name", "n", "", "the counter name")
-	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_counters"},
-	}
-	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newCounterCreateCommand())
 	cmd.AddCommand(newCounterGetCommand())
 	cmd.AddCommand(newCounterSetCommand())
@@ -40,8 +36,20 @@ func newCounterCommand() *cobra.Command {
 	return cmd
 }
 
-func getCounter(cmd *cobra.Command) counter.Counter {
+func addCounterFlags(cmd *cobra.Command) {
+	cmd.Flags().StringP("name", "n", "", "the list name")
+	cmd.Flags().Lookup("name").Annotations = map[string][]string{
+		cobra.BashCompCustom: {"__atomix_get_counters"},
+	}
+	cmd.MarkPersistentFlagRequired("name")
+}
+
+func getCounterName(cmd *cobra.Command) string {
 	name, _ := cmd.Flags().GetString("name")
+	return name
+}
+
+func getCounter(cmd *cobra.Command, name string) counter.Counter {
 	database := getDatabase(cmd)
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
@@ -54,14 +62,14 @@ func getCounter(cmd *cobra.Command) counter.Counter {
 
 func newCounterCreateCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:  "create",
+		Use:  "create <name>",
 		Args: cobra.NoArgs,
 		Run:  runCounterCreateCommand,
 	}
 }
 
-func runCounterCreateCommand(cmd *cobra.Command, _ []string) {
-	counter := getCounter(cmd)
+func runCounterCreateCommand(cmd *cobra.Command, args []string) {
+	counter := getCounter(cmd, args[0])
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	counter.Close(ctx)
@@ -70,14 +78,14 @@ func runCounterCreateCommand(cmd *cobra.Command, _ []string) {
 
 func newCounterDeleteCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:  "delete",
+		Use:  "delete <name>",
 		Args: cobra.NoArgs,
 		Run:  runCounterDeleteCommand,
 	}
 }
 
-func runCounterDeleteCommand(cmd *cobra.Command, _ []string) {
-	counter := getCounter(cmd)
+func runCounterDeleteCommand(cmd *cobra.Command, args []string) {
+	counter := getCounter(cmd, args[0])
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	err := counter.Delete(ctx)
@@ -89,15 +97,17 @@ func runCounterDeleteCommand(cmd *cobra.Command, _ []string) {
 }
 
 func newCounterGetCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "get",
 		Args: cobra.NoArgs,
 		Run:  runCounterGetCommand,
 	}
+	addCounterFlags(cmd)
+	return cmd
 }
 
 func runCounterGetCommand(cmd *cobra.Command, _ []string) {
-	counter := getCounter(cmd)
+	counter := getCounter(cmd, getCounterName(cmd))
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	value, err := counter.Get(ctx)
@@ -110,21 +120,23 @@ func runCounterGetCommand(cmd *cobra.Command, _ []string) {
 
 func newCounterSetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "set",
-		Args: cobra.NoArgs,
+		Use:  "set <value>",
+		Args: cobra.ExactArgs(1),
 		Run:  runCounterSetCommand,
 	}
-	cmd.Flags().Int64P("value", "v", 0, "the value to set")
-	cmd.MarkFlagRequired("value")
+	addCounterFlags(cmd)
 	return cmd
 }
 
-func runCounterSetCommand(cmd *cobra.Command, _ []string) {
-	counter := getCounter(cmd)
-	value, _ := cmd.Flags().GetInt64("value")
+func runCounterSetCommand(cmd *cobra.Command, args []string) {
+	counter := getCounter(cmd, getCounterName(cmd))
+	value, err := strconv.Atoi(args[0])
+	if err != nil {
+		ExitWithError(ExitBadArgs, err)
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	err := counter.Set(ctx, value)
+	err = counter.Set(ctx, int64(value))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
@@ -134,17 +146,24 @@ func runCounterSetCommand(cmd *cobra.Command, _ []string) {
 
 func newCounterIncrementCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "increment",
-		Args: cobra.NoArgs,
+		Use:  "increment [delta]",
+		Args: cobra.MaximumNArgs(1),
 		Run:  runCounterIncrementCommand,
 	}
-	cmd.Flags().Int64P("delta", "d", 1, "the delta by which to increment the counter")
+	addCounterFlags(cmd)
 	return cmd
 }
 
-func runCounterIncrementCommand(cmd *cobra.Command, _ []string) {
-	counter := getCounter(cmd)
-	delta, _ := cmd.Flags().GetInt64("delta")
+func runCounterIncrementCommand(cmd *cobra.Command, args []string) {
+	counter := getCounter(cmd, getCounterName(cmd))
+	var delta int64
+	if len(args) > 0 {
+		value, err := strconv.Atoi(args[0])
+		if err != nil {
+			ExitWithError(ExitBadArgs, err)
+		}
+		delta = int64(value)
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	value, err := counter.Increment(ctx, delta)
@@ -157,17 +176,24 @@ func runCounterIncrementCommand(cmd *cobra.Command, _ []string) {
 
 func newCounterDecrementCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "decrement",
-		Args: cobra.NoArgs,
+		Use:  "decrement [delta]",
+		Args: cobra.MaximumNArgs(1),
 		Run:  runCounterDecrementCommand,
 	}
-	cmd.Flags().Int64P("delta", "d", 1, "the delta by which to decrement the counter")
+	addCounterFlags(cmd)
 	return cmd
 }
 
-func runCounterDecrementCommand(cmd *cobra.Command, _ []string) {
-	counter := getCounter(cmd)
-	delta, _ := cmd.Flags().GetInt64("delta")
+func runCounterDecrementCommand(cmd *cobra.Command, args []string) {
+	counter := getCounter(cmd, getCounterName(cmd))
+	var delta int64
+	if len(args) > 0 {
+		value, err := strconv.Atoi(args[0])
+		if err != nil {
+			ExitWithError(ExitBadArgs, err)
+		}
+		delta = int64(value)
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	value, err := counter.Decrement(ctx, delta)

@@ -15,5 +15,5 @@ deps:
 	bash -c "diff -u <(echo -n) <(git diff go.mod)"
 	bash -c "diff -u <(echo -n) <(git diff go.sum)"
 
-images:
+images: build
 	docker build . -f build/Dockerfile -t atomix/cli:latest
