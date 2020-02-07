@@ -19,6 +19,9 @@ import (
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/map"
 	"github.com/spf13/cobra"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func newMapCommand() *cobra.Command {
@@ -38,6 +41,7 @@ func newMapCommand() *cobra.Command {
 	cmd.AddCommand(newMapKeysCommand())
 	cmd.AddCommand(newMapSizeCommand())
 	cmd.AddCommand(newMapClearCommand())
+	cmd.AddCommand(newMapWatchCommand())
 	return cmd
 }
 
@@ -200,5 +204,48 @@ func runMapClearCommand(cmd *cobra.Command, _ []string) {
 		ExitWithError(ExitError, err)
 	} else {
 		ExitWithSuccess()
+	}
+}
+
+func newMapWatchCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "watch",
+		Args: cobra.NoArgs,
+		Run:  runMapWatchCommand,
+	}
+	cmd.Flags().BoolP("replay", "r", false, "replay current map entries at start")
+	return cmd
+}
+
+func runMapWatchCommand(cmd *cobra.Command, _ []string) {
+	m := getMap(cmd, getMapName(cmd))
+	watchCh := make(chan *_map.Event)
+	opts := []_map.WatchOption{}
+	replay, _ := cmd.Flags().GetBool("replay")
+	if replay {
+		opts = append(opts, _map.WithReplay())
+	}
+	if err := m.Watch(context.Background(), watchCh, opts...); err != nil {
+		ExitWithError(ExitError, err)
+	}
+
+	signalCh := make(chan os.Signal, 2)
+	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+	for {
+		select {
+		case event := <-watchCh:
+			switch event.Type {
+			case _map.EventNone:
+				Output("Replayed: Key: %s, Value: %v, Version: %d", event.Entry.Key, event.Entry.Value, event.Entry.Version)
+			case _map.EventInserted:
+				Output("Inserted: Key: %s, Value: %v, Version: %d", event.Entry.Key, event.Entry.Value, event.Entry.Version)
+			case _map.EventUpdated:
+				Output("Updated: Key: %s, Value: %v, Version: %d", event.Entry.Key, event.Entry.Value, event.Entry.Version)
+			case _map.EventRemoved:
+				Output("Removed: Key: %s, Value: %v, Version: %d", event.Entry.Key, event.Entry.Value, event.Entry.Version)
+			}
+		case <-signalCh:
+			ExitWithSuccess()
+		}
 	}
 }

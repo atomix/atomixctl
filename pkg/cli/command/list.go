@@ -18,7 +18,10 @@ import (
 	"context"
 	"github.com/atomix/go-client/pkg/client/list"
 	"github.com/spf13/cobra"
+	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 )
 
 func newListCommand() *cobra.Command {
@@ -39,6 +42,7 @@ func newListCommand() *cobra.Command {
 	cmd.AddCommand(newListItemsCommand())
 	cmd.AddCommand(newListSizeCommand())
 	cmd.AddCommand(newListClearCommand())
+	cmd.AddCommand(newListWatchCommand())
 	return cmd
 }
 
@@ -218,5 +222,46 @@ func runListClearCommand(cmd *cobra.Command, _ []string) {
 		ExitWithError(ExitError, err)
 	} else {
 		ExitWithSuccess()
+	}
+}
+
+func newListWatchCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "watch",
+		Args: cobra.NoArgs,
+		Run:  runListWatchCommand,
+	}
+	cmd.Flags().BoolP("replay", "r", false, "replay current list values at start")
+	return cmd
+}
+
+func runListWatchCommand(cmd *cobra.Command, _ []string) {
+	l := getList(cmd, getListName(cmd))
+	watchCh := make(chan *list.Event)
+	opts := []list.WatchOption{}
+	replay, _ := cmd.Flags().GetBool("replay")
+	if replay {
+		opts = append(opts, list.WithReplay())
+	}
+	if err := l.Watch(context.Background(), watchCh, opts...); err != nil {
+		ExitWithError(ExitError, err)
+	}
+
+	signalCh := make(chan os.Signal, 2)
+	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+	for {
+		select {
+		case event := <-watchCh:
+			switch event.Type {
+			case list.EventNone:
+				Output("Replayed: %v", event.Value)
+			case list.EventInserted:
+				Output("Inserted: %v", event.Value)
+			case list.EventRemoved:
+				Output("Removed: %v", event.Value)
+			}
+		case <-signalCh:
+			ExitWithSuccess()
+		}
 	}
 }

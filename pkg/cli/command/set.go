@@ -15,8 +15,12 @@
 package command
 
 import (
+	"context"
 	"github.com/atomix/go-client/pkg/client/set"
 	"github.com/spf13/cobra"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
 func newSetCommand() *cobra.Command {
@@ -35,6 +39,7 @@ func newSetCommand() *cobra.Command {
 	cmd.AddCommand(newSetRemoveCommand())
 	cmd.AddCommand(newSetSizeCommand())
 	cmd.AddCommand(newSetClearCommand())
+	cmd.AddCommand(newSetWatchCommand())
 	return cmd
 }
 
@@ -154,5 +159,46 @@ func runSetClearCommand(cmd *cobra.Command, _ []string) {
 		ExitWithError(ExitError, err)
 	} else {
 		ExitWithSuccess()
+	}
+}
+
+func newSetWatchCommand() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "watch",
+		Args: cobra.NoArgs,
+		Run:  runSetWatchCommand,
+	}
+	cmd.Flags().BoolP("replay", "r", false, "replay current set values at start")
+	return cmd
+}
+
+func runSetWatchCommand(cmd *cobra.Command, _ []string) {
+	s := getSet(cmd, getSetName(cmd))
+	watchCh := make(chan *set.Event)
+	opts := []set.WatchOption{}
+	replay, _ := cmd.Flags().GetBool("replay")
+	if replay {
+		opts = append(opts, set.WithReplay())
+	}
+	if err := s.Watch(context.Background(), watchCh, opts...); err != nil {
+		ExitWithError(ExitError, err)
+	}
+
+	signalCh := make(chan os.Signal, 2)
+	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+	for {
+		select {
+		case event := <-watchCh:
+			switch event.Type {
+			case set.EventNone:
+				Output("Replayed: %v", event.Value)
+			case set.EventAdded:
+				Output("Added: %v", event.Value)
+			case set.EventRemoved:
+				Output("Removed: %v", event.Value)
+			}
+		case <-signalCh:
+			ExitWithSuccess()
+		}
 	}
 }

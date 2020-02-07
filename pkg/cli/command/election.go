@@ -36,6 +36,7 @@ func newElectionCommand() *cobra.Command {
 	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newElectionGetCommand())
 	cmd.AddCommand(newElectionEnterCommand())
+	cmd.AddCommand(newElectionWatchCommand())
 	return cmd
 }
 
@@ -119,6 +120,33 @@ func runElectionEnterCommand(cmd *cobra.Command, args []string) {
 			} else {
 				ExitWithSuccess()
 			}
+		}
+	}
+}
+
+func newElectionWatchCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:  "watch",
+		Args: cobra.NoArgs,
+		Run:  runElectionWatchCommand,
+	}
+}
+
+func runElectionWatchCommand(cmd *cobra.Command, _ []string) {
+	e := getElection(cmd, getElectionName(cmd), "")
+	watchCh := make(chan *election.Event)
+	if err := e.Watch(context.Background(), watchCh); err != nil {
+		ExitWithError(ExitError, err)
+	}
+
+	signalCh := make(chan os.Signal, 2)
+	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+	for {
+		select {
+		case event := <-watchCh:
+			Output("Term: %d, Leader: %s, Candidates: %v", event.Term.ID, event.Term.Leader, event.Term.Candidates)
+		case <-signalCh:
+			ExitWithSuccess()
 		}
 	}
 }
