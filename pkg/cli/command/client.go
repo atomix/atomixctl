@@ -16,7 +16,6 @@ package command
 
 import (
 	"context"
-	"fmt"
 	"github.com/atomix/go-client/pkg/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -30,7 +29,7 @@ func addClientFlags(cmd *cobra.Command) {
 	viper.SetDefault("database", "")
 
 	cmd.PersistentFlags().StringP("scope", "s", viper.GetString("scope"), "the application scope")
-	cmd.PersistentFlags().StringP("database", "d", viper.GetString("database"), fmt.Sprintf("the database name (default %s)", viper.GetString("database")))
+	cmd.PersistentFlags().StringP("database", "d", viper.GetString("database"), "the database name")
 	cmd.PersistentFlags().String("config", "", "config file (default: $HOME/.atomix/config.yaml)")
 	cmd.PersistentFlags().Duration("timeout", 15*time.Second, "the operation timeout")
 
@@ -53,12 +52,12 @@ func getClientNamespace() string {
 }
 
 func getClientDatabase(cmd *cobra.Command) string {
-	database, _ := cmd.PersistentFlags().GetString("database")
+	database, _ := cmd.Flags().GetString("database")
 	return database
 }
 
 func getClientScope(cmd *cobra.Command) string {
-	app, _ := cmd.PersistentFlags().GetString("scope")
+	app, _ := cmd.Flags().GetString("scope")
 	return app
 }
 
@@ -66,7 +65,7 @@ func getClient(cmd *cobra.Command) *client.Client {
 	client, err := client.NewClient(
 		getClientController(),
 		client.WithNamespace(getClientNamespace()),
-		client.WithApplication(getClientScope(cmd)))
+		client.WithScope(getClientScope(cmd)))
 	if err != nil {
 		ExitWithError(ExitBadConnection, err)
 	}

@@ -25,7 +25,7 @@ var (
 )
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	initConfig()
 }
 
 func newConfigCommand() *cobra.Command {
@@ -119,19 +119,15 @@ func getConfig(key string) string {
 }
 
 func initConfig() {
-	if configFile != "" {
-		viper.SetConfigFile(configFile)
-	} else {
-		home, err := homedir.Dir()
-		if err != nil {
-			ExitWithError(ExitError, err)
-		}
-
-		viper.SetConfigName("config")
-		viper.AddConfigPath(home + "/.atomix")
-		viper.AddConfigPath("/etc/atomix")
-		viper.AddConfigPath(".")
+	home, err := homedir.Dir()
+	if err != nil {
+		ExitWithError(ExitError, err)
 	}
+
+	viper.SetConfigName("config")
+	viper.AddConfigPath(home + "/.atomix")
+	viper.AddConfigPath("/etc/atomix")
+	viper.AddConfigPath(".")
 
 	viper.ReadInConfig()
 }
