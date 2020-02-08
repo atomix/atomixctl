@@ -80,7 +80,7 @@ func runMapGetCommand(cmd *cobra.Command, args []string) {
 	} else if value != nil {
 		ExitWithOutput(value.String())
 	} else {
-		ExitWithOutput(nil)
+		ExitWithOutput("<none>")
 	}
 }
 
@@ -112,7 +112,7 @@ func runMapPutCommand(cmd *cobra.Command, args []string) {
 	} else if kv != nil {
 		ExitWithOutput(kv.String())
 	} else {
-		ExitWithOutput(nil)
+		ExitWithOutput("<none>")
 	}
 }
 
@@ -143,7 +143,7 @@ func runMapRemoveCommand(cmd *cobra.Command, args []string) {
 	} else if value != nil {
 		ExitWithOutput(value.String())
 	} else {
-		ExitWithOutput(nil)
+		ExitWithOutput("<none>")
 	}
 }
 
@@ -183,7 +183,7 @@ func runMapSizeCommand(cmd *cobra.Command, _ []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(size)
+		ExitWithOutput("%d", size)
 	}
 }
 

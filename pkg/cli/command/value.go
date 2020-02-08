@@ -26,12 +26,12 @@ import (
 func newValueCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "value {get,set,watch}",
-		Short: "Manage the state of a distributed set",
+		Short: "Manage the state of a distributed value",
 	}
 	addClientFlags(cmd)
-	cmd.PersistentFlags().StringP("name", "n", "", "the set name")
+	cmd.PersistentFlags().StringP("name", "n", "", "the value name")
 	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_sets"},
+		cobra.BashCompCustom: {"__atomix_get_values"},
 	}
 	cmd.MarkPersistentFlagRequired("name")
 	cmd.AddCommand(newValueSetCommand())
@@ -81,7 +81,7 @@ func runValueSetCommand(cmd *cobra.Command, args []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(newVersion)
+		ExitWithOutput("Value: %s, Version: %d", args[0], newVersion)
 	}
 }
 
@@ -102,7 +102,7 @@ func runValueGetCommand(cmd *cobra.Command, _ []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput("Value: %v, Version: %d", value, version)
+		ExitWithOutput("Value: %s, Version: %d", string(value), version)
 	}
 }
 
@@ -126,7 +126,7 @@ func runValueWatchCommand(cmd *cobra.Command, _ []string) {
 	for {
 		select {
 		case event := <-watchCh:
-			Output("Value: %v, Version: %d", event.Value, event.Version)
+			Output("Value: %s, Version: %d", string(event.Value), event.Version)
 		case <-signalCh:
 			ExitWithSuccess()
 		}

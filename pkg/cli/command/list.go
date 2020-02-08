@@ -85,7 +85,7 @@ func runListGetCommand(cmd *cobra.Command, args []string) {
 	} else if value != nil {
 		ExitWithOutput(string(value))
 	} else {
-		ExitWithOutput(nil)
+		ExitWithOutput("<none>")
 	}
 }
 
@@ -106,7 +106,7 @@ func runListAppendCommand(cmd *cobra.Command, args []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(nil)
+		ExitWithOutput("<none>")
 	}
 }
 
@@ -132,7 +132,7 @@ func runListInsertCommand(cmd *cobra.Command, args []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(nil)
+		ExitWithOutput("<none>")
 	}
 }
 
@@ -161,7 +161,7 @@ func runListRemoveCommand(cmd *cobra.Command, args []string) {
 	} else if value != nil {
 		ExitWithOutput(string(value))
 	} else {
-		ExitWithOutput(nil)
+		ExitWithOutput("<none>")
 	}
 }
 
@@ -201,7 +201,7 @@ func runListSizeCommand(cmd *cobra.Command, _ []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(size)
+		ExitWithOutput("%d", size)
 	}
 }
 

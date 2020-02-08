@@ -29,6 +29,7 @@ func newDeleteCommand() *cobra.Command {
 	cmd.AddCommand(newDeleteElectionCommand())
 	cmd.AddCommand(newDeleteListCommand())
 	cmd.AddCommand(newDeleteLockCommand())
+	cmd.AddCommand(newDeleteLogCommand())
 	cmd.AddCommand(newDeleteMapCommand())
 	cmd.AddCommand(newDeleteSetCommand())
 	cmd.AddCommand(newDeleteValueCommand())
@@ -112,6 +113,26 @@ func runDeleteLockCommand(cmd *cobra.Command, args []string) {
 		ExitWithError(ExitError, err)
 	} else {
 		ExitWithOutput(fmt.Sprintf("Deleted lock %s", lock.Name().String()))
+	}
+}
+
+func newDeleteLogCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:  "log <name>",
+		Args: cobra.ExactArgs(1),
+		Run:  runDeleteLogCommand,
+	}
+}
+
+func runDeleteLogCommand(cmd *cobra.Command, args []string) {
+	log := getLog(cmd, args[0])
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	err := log.Delete(ctx)
+	if err != nil {
+		ExitWithError(ExitError, err)
+	} else {
+		ExitWithOutput(fmt.Sprintf("Deleted log %s", log.Name().String()))
 	}
 }
 

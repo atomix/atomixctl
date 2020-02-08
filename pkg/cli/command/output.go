@@ -31,12 +31,12 @@ const (
 	ExitBadArgs = 128
 )
 
-func Output(output ...interface{}) {
-	fmt.Fprintln(os.Stdout, output...)
+func Output(format string, args ...interface{}) {
+	fmt.Fprintln(os.Stdout, fmt.Sprintf(format, args...))
 }
 
-func ExitWithOutput(output ...interface{}) {
-	fmt.Fprintln(os.Stdout, output...)
+func ExitWithOutput(format string, args ...interface{}) {
+	fmt.Fprintln(os.Stdout, fmt.Sprintf(format, args...))
 	os.Exit(ExitSuccess)
 }
 

@@ -70,7 +70,7 @@ func runCounterGetCommand(cmd *cobra.Command, _ []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(value)
+		ExitWithOutput("%d", value)
 	}
 }
 
@@ -94,7 +94,7 @@ func runCounterSetCommand(cmd *cobra.Command, args []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(value)
+		ExitWithOutput("%d", value)
 	}
 }
 
@@ -122,7 +122,7 @@ func runCounterIncrementCommand(cmd *cobra.Command, args []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(value)
+		ExitWithOutput("%d", value)
 	}
 }
 
@@ -150,6 +150,6 @@ func runCounterDecrementCommand(cmd *cobra.Command, args []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(value)
+		ExitWithOutput("%d", value)
 	}
 }

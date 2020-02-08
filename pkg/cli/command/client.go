@@ -23,11 +23,6 @@ import (
 )
 
 func addClientFlags(cmd *cobra.Command) {
-	viper.SetDefault("controller", ":5679")
-	viper.SetDefault("namespace", "default")
-	viper.SetDefault("scope", "default")
-	viper.SetDefault("database", "")
-
 	cmd.PersistentFlags().StringP("scope", "s", viper.GetString("scope"), "the application scope")
 	cmd.PersistentFlags().StringP("database", "d", viper.GetString("database"), "the database name")
 	cmd.PersistentFlags().String("config", "", "config file (default: $HOME/.atomix/config.yaml)")

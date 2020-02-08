@@ -85,7 +85,7 @@ func runLogGetCommand(cmd *cobra.Command, args []string) {
 	} else if entry != nil {
 		ExitWithOutput("Index: %d, Value: %v", entry.Index, entry.Value)
 	} else {
-		ExitWithOutput(nil)
+		ExitWithOutput("<none>")
 	}
 }
 
@@ -135,7 +135,7 @@ func runLogRemoveCommand(cmd *cobra.Command, args []string) {
 	} else if entry != nil {
 		ExitWithOutput("Index: %d, Value: %v", entry.Index, entry.Value)
 	} else {
-		ExitWithOutput(nil)
+		ExitWithOutput("<none>")
 	}
 }
 
@@ -167,7 +167,7 @@ func runLogSizeCommand(cmd *cobra.Command, _ []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(size)
+		ExitWithOutput("%d", size)
 	}
 }
 

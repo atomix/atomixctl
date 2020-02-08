@@ -105,7 +105,11 @@ func runLockGetCommand(cmd *cobra.Command, _ []string) {
 		if err != nil {
 			ExitWithError(ExitError, err)
 		} else {
-			ExitWithOutput(locked)
+			if locked {
+				ExitWithOutput("<locked>")
+			} else {
+				ExitWithOutput("<unlocked>")
+			}
 		}
 	} else {
 		ctx, cancel := getTimeoutContext(cmd)
@@ -114,7 +118,11 @@ func runLockGetCommand(cmd *cobra.Command, _ []string) {
 		if err != nil {
 			ExitWithError(ExitError, err)
 		} else {
-			ExitWithOutput(locked)
+			if locked {
+				ExitWithOutput("<locked>")
+			} else {
+				ExitWithOutput("<unlocked>")
+			}
 		}
 	}
 }

@@ -56,7 +56,7 @@ func newConfigGetCommand() *cobra.Command {
 
 func runConfigGetCommand(cmd *cobra.Command, args []string) {
 	value := viper.Get(args[0])
-	ExitWithOutput(value)
+	ExitWithOutput("%v", value)
 }
 
 func newConfigSetCommand() *cobra.Command {
@@ -80,7 +80,7 @@ func runConfigSetCommand(cmd *cobra.Command, args []string) {
 		ExitWithError(ExitError, err)
 	} else {
 		value := viper.Get(args[0])
-		ExitWithOutput(value)
+		ExitWithOutput("%v", value)
 	}
 }
 
@@ -105,7 +105,7 @@ func runConfigDeleteCommand(cmd *cobra.Command, args []string) {
 		ExitWithError(ExitError, err)
 	} else {
 		value := viper.Get(args[0])
-		ExitWithOutput(value)
+		ExitWithOutput("%v", value)
 	}
 }
 
@@ -119,6 +119,11 @@ func getConfig(key string) string {
 }
 
 func initConfig() {
+	viper.SetDefault("controller", "atomix-controller.kube-system.svc.cluster.local:5679")
+	viper.SetDefault("namespace", "default")
+	viper.SetDefault("scope", "default")
+	viper.SetDefault("database", "")
+
 	home, err := homedir.Dir()
 	if err != nil {
 		ExitWithError(ExitError, err)

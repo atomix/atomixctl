@@ -29,6 +29,7 @@ func newCreateCommand() *cobra.Command {
 	cmd.AddCommand(newCreateElectionCommand())
 	cmd.AddCommand(newCreateListCommand())
 	cmd.AddCommand(newCreateLockCommand())
+	cmd.AddCommand(newCreateLogCommand())
 	cmd.AddCommand(newCreateMapCommand())
 	cmd.AddCommand(newCreateSetCommand())
 	cmd.AddCommand(newCreateValueCommand())
@@ -156,7 +157,7 @@ func newCreateValueCommand() *cobra.Command {
 }
 
 func runCreateValueCommand(cmd *cobra.Command, args []string) {
-	value := getMap(cmd, args[0])
+	value := getValue(cmd, args[0])
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	value.Close(ctx)

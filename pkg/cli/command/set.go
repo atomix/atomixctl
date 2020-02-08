@@ -76,7 +76,11 @@ func runSetAddCommand(cmd *cobra.Command, args []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(added)
+		if added {
+			ExitWithOutput("<added>")
+		} else {
+			ExitWithOutput("<no-op>")
+		}
 	}
 }
 
@@ -97,7 +101,11 @@ func runSetContainsCommand(cmd *cobra.Command, args []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(contains)
+		if contains {
+			ExitWithOutput("true")
+		} else {
+			ExitWithOutput("false")
+		}
 	}
 }
 
@@ -118,7 +126,11 @@ func runSetRemoveCommand(cmd *cobra.Command, args []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(removed)
+		if removed {
+			ExitWithOutput("<removed>")
+		} else {
+			ExitWithOutput("<no-op>")
+		}
 	}
 }
 
@@ -138,7 +150,7 @@ func runSetSizeCommand(cmd *cobra.Command, _ []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(size)
+		ExitWithOutput("%d", size)
 	}
 }
 

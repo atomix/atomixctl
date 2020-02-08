@@ -72,7 +72,7 @@ func runElectionGetCommand(cmd *cobra.Command, _ []string) {
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else {
-		ExitWithOutput(term)
+		ExitWithOutput("Term: %d, Leader: %s, Candidates: %v", term.ID, term.Leader, term.Candidates)
 	}
 }
 
