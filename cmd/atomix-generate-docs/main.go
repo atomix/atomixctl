@@ -23,7 +23,7 @@ import (
 
 func main() {
 	cmd := command.GetRootCommand()
-	err := doc.GenMarkdownTree(cmd, "docs")
+	err := doc.GenMarkdownTree(cmd, "docs/commands")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
