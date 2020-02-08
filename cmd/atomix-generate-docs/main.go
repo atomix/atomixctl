@@ -15,9 +15,17 @@
 package main
 
 import (
-	"github.com/atomix/cli/pkg/cli"
+	"fmt"
+	"github.com/atomix/cli/pkg/cli/command"
+	"github.com/spf13/cobra/doc"
+	"os"
 )
 
 func main() {
-	cli.Execute()
+	cmd := command.GetRootCommand()
+	err := doc.GenMarkdownTree(cmd, "docs")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
