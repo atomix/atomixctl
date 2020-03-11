@@ -1,10 +1,11 @@
 module github.com/atomix/cli
 
+go 1.13
+
 require (
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/atomix/api v0.0.0-20200207212403-a55e2fa6e823
 	github.com/atomix/go-client v0.0.0-20200207222107-ee4ae47f0a5d
-	github.com/client9/misspell v0.3.4 // indirect
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
 	github.com/elazarl/goproxy v0.0.0-20190703090003-6125c262ffb0 // indirect
 	github.com/emicklei/go-restful v2.9.6+incompatible // indirect
@@ -17,7 +18,6 @@ require (
 	github.com/golang/protobuf v1.3.2
 	github.com/google/uuid v1.1.1
 	github.com/googleapis/gnostic v0.3.0 // indirect
-	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
 	github.com/hashicorp/hcl v1.0.0
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/inconshreveable/mousetrap v1.0.0
