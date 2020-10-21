@@ -60,7 +60,7 @@ func getClientScope(cmd *cobra.Command) string {
 }
 
 func getClient(cmd *cobra.Command) *client.Client {
-	client, err := client.NewClient(
+	client, err := client.New(
 		getClientController(),
 		client.WithNamespace(getClientNamespace()),
 		client.WithScope(getClientScope(cmd)))

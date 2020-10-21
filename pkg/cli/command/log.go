@@ -71,7 +71,7 @@ func newLogGetCommand() *cobra.Command {
 }
 
 func runLogGetCommand(cmd *cobra.Command, args []string) {
-	log := getLog(cmd, getLogName(cmd))
+	l := getLog(cmd, getLogName(cmd))
 	indexStr := args[0]
 	index, err := strconv.Atoi(indexStr)
 	if err != nil {
@@ -79,7 +79,7 @@ func runLogGetCommand(cmd *cobra.Command, args []string) {
 	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	entry, err := log.Get(ctx, int64(index))
+	entry, err := l.Get(ctx, log.Index(index))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else if entry != nil {
@@ -129,7 +129,7 @@ func runLogRemoveCommand(cmd *cobra.Command, args []string) {
 	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	entry, err := m.Remove(ctx, int64(index))
+	entry, err := m.Remove(ctx, log.Index(index))
 	if err != nil {
 		ExitWithError(ExitError, err)
 	} else if entry != nil {

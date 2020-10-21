@@ -101,7 +101,7 @@ func runMapPutCommand(cmd *cobra.Command, args []string) {
 	version, _ := cmd.Flags().GetInt64("version")
 	opts := []_map.PutOption{}
 	if version > 0 {
-		opts = append(opts, _map.IfVersion(version))
+		opts = append(opts, _map.IfVersion(_map.Version(version)))
 	}
 
 	ctx, cancel := getTimeoutContext(cmd)
@@ -132,7 +132,7 @@ func runMapRemoveCommand(cmd *cobra.Command, args []string) {
 	version, _ := cmd.Flags().GetInt64("version")
 	opts := []_map.RemoveOption{}
 	if version > 0 {
-		opts = append(opts, _map.IfVersion(version))
+		opts = append(opts, _map.IfVersion(_map.Version(version)))
 	}
 
 	ctx, cancel := getTimeoutContext(cmd)
