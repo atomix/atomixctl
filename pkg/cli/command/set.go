@@ -16,201 +16,199 @@ package command
 
 import (
 	"context"
+	"fmt"
 	"github.com/atomix/go-client/pkg/client/set"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func newSetCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "set {add,contains,remove,size,clear,watch}",
-		Short: "Manage the state of a distributed set",
+	return &cobra.Command{
+		Use:                "set <name> [...]",
+		Short:              "Manage the state of a distributed set",
+		Args:               cobra.MinimumNArgs(1),
+		DisableFlagParsing: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// If only the name was specified, open an interactive shell
+			name := args[0]
+			if len(args) == 1 {
+				return runShell(fmt.Sprintf("set:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "set", name))
+			}
+
+			// Get the command for the specified operation
+			var subCmd *cobra.Command
+			op := args[1]
+			switch op {
+			case "add":
+				subCmd = newSetAddCommand(name)
+			case "contains":
+				subCmd = newSetContainsCommand(name)
+			case "remove":
+				subCmd = newSetRemoveCommand(name)
+			case "size":
+				subCmd = newSetSizeCommand(name)
+			case "clear":
+				subCmd = newSetClearCommand(name)
+			case "watch":
+				subCmd = newSetWatchCommand(name)
+			}
+
+			// Set the arguments after the name and execute the command
+			subCmd.SetArgs(args[2:])
+			return subCmd.Execute()
+		},
 	}
-	addClientFlags(cmd)
-	cmd.PersistentFlags().StringP("name", "n", "", "the set name")
-	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_sets"},
-	}
-	cmd.MarkPersistentFlagRequired("name")
-	cmd.AddCommand(newSetAddCommand())
-	cmd.AddCommand(newSetContainsCommand())
-	cmd.AddCommand(newSetRemoveCommand())
-	cmd.AddCommand(newSetSizeCommand())
-	cmd.AddCommand(newSetClearCommand())
-	cmd.AddCommand(newSetWatchCommand())
-	return cmd
 }
 
-func getSetName(cmd *cobra.Command) string {
-	name, _ := cmd.Flags().GetString("name")
-	return name
-}
-
-func getSet(cmd *cobra.Command, name string) set.Set {
+func getSet(cmd *cobra.Command, name string) (set.Set, error) {
 	database := getDatabase(cmd)
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	m, err := database.GetSet(ctx, name)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	return m
+	return database.GetSet(ctx, name)
 }
 
-func newSetAddCommand() *cobra.Command {
+func newSetAddCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "add <value>",
 		Args: cobra.ExactArgs(1),
-		Run:  runSetAddCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			set, err := getSet(cmd, name)
+			if err != nil {
+				return err
+			}
+			value := args[0]
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			added, err := set.Add(ctx, value)
+			if err != nil {
+				return err
+			}
+			cmd.Println(added)
+			return nil
+		},
 	}
 }
 
-func runSetAddCommand(cmd *cobra.Command, args []string) {
-	set := getSet(cmd, getSetName(cmd))
-	value := args[0]
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	added, err := set.Add(ctx, value)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		if added {
-			ExitWithOutput("<added>")
-		} else {
-			ExitWithOutput("<no-op>")
-		}
-	}
-}
-
-func newSetContainsCommand() *cobra.Command {
+func newSetContainsCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "contains <value>",
 		Args: cobra.ExactArgs(1),
-		Run:  runSetContainsCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			set, err := getSet(cmd, name)
+			if err != nil {
+				return err
+			}
+			value := args[0]
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			contains, err := set.Contains(ctx, value)
+			if err != nil {
+				return err
+			}
+			cmd.Println(contains)
+			return nil
+		},
 	}
 }
 
-func runSetContainsCommand(cmd *cobra.Command, args []string) {
-	set := getSet(cmd, getSetName(cmd))
-	value := args[0]
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	contains, err := set.Contains(ctx, value)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		if contains {
-			ExitWithOutput("true")
-		} else {
-			ExitWithOutput("false")
-		}
-	}
-}
-
-func newSetRemoveCommand() *cobra.Command {
+func newSetRemoveCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "remove <value>",
 		Args: cobra.ExactArgs(1),
-		Run:  runSetRemoveCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			set, err := getSet(cmd, name)
+			if err != nil {
+				return err
+			}
+			value := args[0]
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			removed, err := set.Remove(ctx, value)
+			if err != nil {
+				return err
+			}
+			cmd.Println(removed)
+			return nil
+		},
 	}
 }
 
-func runSetRemoveCommand(cmd *cobra.Command, args []string) {
-	set := getSet(cmd, getSetName(cmd))
-	value := args[0]
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	removed, err := set.Remove(ctx, value)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		if removed {
-			ExitWithOutput("<removed>")
-		} else {
-			ExitWithOutput("<no-op>")
-		}
-	}
-}
-
-func newSetSizeCommand() *cobra.Command {
+func newSetSizeCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "size",
 		Args: cobra.NoArgs,
-		Run:  runSetSizeCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			set, err := getSet(cmd, name)
+			if err != nil {
+				return err
+			}
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			size, err := set.Len(ctx)
+			if err != nil {
+				return err
+			}
+			cmd.Println(size)
+			return nil
+		},
 	}
 }
 
-func runSetSizeCommand(cmd *cobra.Command, _ []string) {
-	set := getSet(cmd, getSetName(cmd))
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	size, err := set.Len(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput("%d", size)
-	}
-}
-
-func newSetClearCommand() *cobra.Command {
+func newSetClearCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "clear",
 		Args: cobra.NoArgs,
-		Run:  runSetClearCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			set, err := getSet(cmd, name)
+			if err != nil {
+				return err
+			}
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			return set.Clear(ctx)
+		},
 	}
 }
 
-func runSetClearCommand(cmd *cobra.Command, _ []string) {
-	set := getSet(cmd, getSetName(cmd))
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	err := set.Clear(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithSuccess()
-	}
-}
-
-func newSetWatchCommand() *cobra.Command {
+func newSetWatchCommand(name string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "watch",
 		Args: cobra.NoArgs,
-		Run:  runSetWatchCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			s, err := getSet(cmd, name)
+			if err != nil {
+				return err
+			}
+			watchCh := make(chan *set.Event)
+			opts := []set.WatchOption{}
+			replay, _ := cmd.Flags().GetBool("replay")
+			if replay {
+				opts = append(opts, set.WithReplay())
+			}
+			if err := s.Watch(context.Background(), watchCh, opts...); err != nil {
+				return err
+			}
+
+			signalCh := make(chan os.Signal, 2)
+			signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+			for {
+				select {
+				case event := <-watchCh:
+					bytes, err := yaml.Marshal(event)
+					if err != nil {
+						cmd.Println(err)
+					} else {
+						cmd.Println(string(bytes))
+					}
+				case <-signalCh:
+					return nil
+				}
+			}
+		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current set values at start")
 	return cmd
-}
-
-func runSetWatchCommand(cmd *cobra.Command, _ []string) {
-	s := getSet(cmd, getSetName(cmd))
-	watchCh := make(chan *set.Event)
-	opts := []set.WatchOption{}
-	replay, _ := cmd.Flags().GetBool("replay")
-	if replay {
-		opts = append(opts, set.WithReplay())
-	}
-	if err := s.Watch(context.Background(), watchCh, opts...); err != nil {
-		ExitWithError(ExitError, err)
-	}
-
-	signalCh := make(chan os.Signal, 2)
-	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-	for {
-		select {
-		case event := <-watchCh:
-			switch event.Type {
-			case set.EventNone:
-				Output("Replayed: %v", event.Value)
-			case set.EventAdded:
-				Output("Added: %v", event.Value)
-			case set.EventRemoved:
-				Output("Removed: %v", event.Value)
-			}
-		case <-signalCh:
-			ExitWithSuccess()
-		}
-	}
 }
