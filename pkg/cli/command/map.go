@@ -15,14 +15,12 @@
 package command
 
 import (
-	"context"
+	"bytes"
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/map"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 	"os"
-	"os/signal"
-	"syscall"
 )
 
 func newMapCommand() *cobra.Command {
@@ -50,6 +48,8 @@ func newMapCommand() *cobra.Command {
 				subCmd = newMapRemoveCommand(name)
 			case "keys":
 				subCmd = newMapKeysCommand(name)
+			case "entries":
+				subCmd = newMapEntriesCommand(name)
 			case "size":
 				subCmd = newMapSizeCommand(name)
 			case "clear":
@@ -184,11 +184,15 @@ func newMapKeysCommand(name string) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			ch := make(chan *_map.Entry)
-			err = m.Entries(context.TODO(), ch)
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			err = m.Entries(ctx, ch)
 			if err != nil {
 				return err
 			}
+
 			for kv := range ch {
 				bytes, err := yaml.Marshal(kv)
 				if err != nil {
@@ -212,6 +216,7 @@ func newMapSizeCommand(name string) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			ctx, cancel := getTimeoutContext(cmd)
 			defer cancel()
 			size, err := _map.Len(ctx)
@@ -244,6 +249,54 @@ func newMapClearCommand(name string) *cobra.Command {
 	return cmd
 }
 
+func newMapEntriesCommand(name string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "entries",
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			m, err := getMap(cmd, name)
+			if err != nil {
+				return err
+			}
+
+			ch := make(chan *_map.Entry)
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			err = m.Entries(ctx, ch)
+			if err != nil {
+				return err
+			}
+
+			context := getContext()
+			if context.isShell {
+				var buf bytes.Buffer
+				for entry := range ch {
+					bytes, err := yaml.Marshal(entry)
+					if err != nil {
+						cmd.Println(err)
+					} else {
+						buf.Write(bytes)
+						buf.WriteByte('\n')
+					}
+				}
+				return context.shellCtx.ShowPaged(buf.String())
+			}
+
+			for entry := range ch {
+				bytes, err := yaml.Marshal(entry)
+				if err != nil {
+					cmd.Println(err)
+				} else {
+					cmd.Println(string(bytes))
+				}
+			}
+			return nil
+		},
+	}
+	addClientFlags(cmd)
+	return cmd
+}
+
 func newMapWatchCommand(name string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "watch",
@@ -253,31 +306,29 @@ func newMapWatchCommand(name string) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			watchCh := make(chan *_map.Event)
 			opts := []_map.WatchOption{}
 			replay, _ := cmd.Flags().GetBool("replay")
 			if replay {
 				opts = append(opts, _map.WithReplay())
 			}
-			if err := m.Watch(context.Background(), watchCh, opts...); err != nil {
+
+			ctx, cancel := getCancelContext(cmd)
+			defer cancel()
+			if err := m.Watch(ctx, watchCh, opts...); err != nil {
 				return err
 			}
 
-			signalCh := make(chan os.Signal, 2)
-			signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-			for {
-				select {
-				case event := <-watchCh:
-					bytes, err := yaml.Marshal(event)
-					if err != nil {
-						cmd.Println(err)
-					} else {
-						cmd.Println(string(bytes))
-					}
-				case <-signalCh:
-					return nil
+			for event := range watchCh {
+				bytes, err := yaml.Marshal(event)
+				if err != nil {
+					cmd.Println(err)
+				} else {
+					cmd.Println(string(bytes))
 				}
 			}
+			return nil
 		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current map entries at start")

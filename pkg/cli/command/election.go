@@ -15,14 +15,11 @@
 package command
 
 import (
-	"context"
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/election"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 	"os"
-	"os/signal"
-	"syscall"
 )
 
 func newElectionCommand() *cobra.Command {
@@ -138,15 +135,17 @@ func newElectionEnterCommand(name string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			ctx, cancel := getTimeoutContext(cmd)
 
 			// Create a watch on the election
-			err = election.Watch(context.Background(), watchCh)
+			watchCtx, watchCancel := getCancelContext(cmd)
+			defer watchCancel()
+			err = election.Watch(watchCtx, watchCh)
 			if err != nil {
 				return err
 			}
 
 			// Enter the election
+			ctx, cancel := getTimeoutContext(cmd)
 			_, err = election.Enter(ctx)
 			cancel()
 			if err != nil {
@@ -154,24 +153,15 @@ func newElectionEnterCommand(name string) *cobra.Command {
 			}
 
 			// Once we've successfully entered the election, wait for watch events
-			signalCh := make(chan os.Signal, 2)
-			signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-			for {
-				select {
-				case event := <-watchCh:
-					bytes, err := yaml.Marshal(event)
-					if err != nil {
-						cmd.Println(err)
-					} else {
-						cmd.Println(string(bytes))
-					}
-				case <-signalCh:
-					ctx, cancel := getTimeoutContext(cmd)
-					_, err = election.Leave(ctx)
-					cancel()
-					return err
+			for event := range watchCh {
+				bytes, err := yaml.Marshal(event)
+				if err != nil {
+					cmd.Println(err)
+				} else {
+					cmd.Println(string(bytes))
 				}
 			}
+			return nil
 		},
 	}
 	addClientFlags(cmd)
@@ -189,25 +179,21 @@ func newElectionWatchCommand(name string) *cobra.Command {
 			}
 
 			watchCh := make(chan *election.Event)
-			if err := e.Watch(context.Background(), watchCh); err != nil {
+			ctx, cancel := getCancelContext(cmd)
+			defer cancel()
+			if err := e.Watch(ctx, watchCh); err != nil {
 				return err
 			}
 
-			signalCh := make(chan os.Signal, 2)
-			signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-			for {
-				select {
-				case event := <-watchCh:
-					bytes, err := yaml.Marshal(event)
-					if err != nil {
-						cmd.Println(err)
-					} else {
-						cmd.Println(string(bytes))
-					}
-				case <-signalCh:
-					return nil
+			for event := range watchCh {
+				bytes, err := yaml.Marshal(event)
+				if err != nil {
+					cmd.Println(err)
+				} else {
+					cmd.Println(string(bytes))
 				}
 			}
+			return nil
 		},
 	}
 	addClientFlags(cmd)

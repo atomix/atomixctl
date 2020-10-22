@@ -15,14 +15,11 @@
 package command
 
 import (
-	"context"
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/value"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 	"os"
-	"os/signal"
-	"syscall"
 )
 
 func newValueCommand() *cobra.Command {
@@ -142,25 +139,21 @@ func newValueWatchCommand(name string) *cobra.Command {
 			}
 
 			watchCh := make(chan *value.Event)
-			if err := val.Watch(context.Background(), watchCh); err != nil {
+			ctx, cancel := getCancelContext(cmd)
+			defer cancel()
+			if err := val.Watch(ctx, watchCh); err != nil {
 				return err
 			}
 
-			signalCh := make(chan os.Signal, 2)
-			signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-			for {
-				select {
-				case event := <-watchCh:
-					bytes, err := yaml.Marshal(event)
-					if err != nil {
-						cmd.Println(err)
-					} else {
-						cmd.Println(string(bytes))
-					}
-				case <-signalCh:
-					return nil
+			for event := range watchCh {
+				bytes, err := yaml.Marshal(event)
+				if err != nil {
+					cmd.Println(err)
+				} else {
+					cmd.Println(string(bytes))
 				}
 			}
+			return nil
 		},
 	}
 	addClientFlags(cmd)

@@ -15,16 +15,13 @@
 package command
 
 import (
-	"context"
-	"errors"
+	"bytes"
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/log"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 	"os"
-	"os/signal"
 	"strconv"
-	"syscall"
 )
 
 func newLogCommand() *cobra.Command {
@@ -185,7 +182,43 @@ func newLogEntriesCommand(name string) *cobra.Command {
 		Use:  "entries",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return errors.New("not implemented")
+			l, err := getLog(cmd, name)
+			if err != nil {
+				return err
+			}
+
+			ch := make(chan *log.Entry)
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			err = l.Entries(ctx, ch)
+			if err != nil {
+				return err
+			}
+
+			context := getContext()
+			if context.isShell {
+				var buf bytes.Buffer
+				for entry := range ch {
+					bytes, err := yaml.Marshal(entry)
+					if err != nil {
+						cmd.Println(err)
+					} else {
+						buf.Write(bytes)
+						buf.WriteByte('\n')
+					}
+				}
+				return context.shellCtx.ShowPaged(buf.String())
+			}
+
+			for entry := range ch {
+				bytes, err := yaml.Marshal(entry)
+				if err != nil {
+					cmd.Println(err)
+				} else {
+					cmd.Println(string(bytes))
+				}
+			}
+			return nil
 		},
 	}
 	addClientFlags(cmd)
@@ -243,31 +276,29 @@ func newLogWatchCommand(name string) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			watchCh := make(chan *log.Event)
 			opts := []log.WatchOption{}
 			replay, _ := cmd.Flags().GetBool("replay")
 			if replay {
 				opts = append(opts, log.WithReplay())
 			}
-			if err := l.Watch(context.Background(), watchCh, opts...); err != nil {
+
+			ctx, cancel := getCancelContext(cmd)
+			defer cancel()
+			if err := l.Watch(ctx, watchCh, opts...); err != nil {
 				return err
 			}
 
-			signalCh := make(chan os.Signal, 2)
-			signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-			for {
-				select {
-				case event := <-watchCh:
-					bytes, err := yaml.Marshal(event)
-					if err != nil {
-						cmd.Println(err)
-					} else {
-						cmd.Println(string(bytes))
-					}
-				case <-signalCh:
-					return nil
+			for event := range watchCh {
+				bytes, err := yaml.Marshal(event)
+				if err != nil {
+					cmd.Println(err)
+				} else {
+					cmd.Println(string(bytes))
 				}
 			}
+			return nil
 		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current log entries at start")

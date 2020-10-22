@@ -15,15 +15,13 @@
 package command
 
 import (
-	"context"
+	"bytes"
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/list"
 	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
 	"os"
-	"os/signal"
 	"strconv"
-	"syscall"
 )
 
 func newListCommand() *cobra.Command {
@@ -186,11 +184,25 @@ func newListItemsCommand(name string) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			ch := make(chan []byte)
-			err = m.Items(context.TODO(), ch)
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			err = m.Items(ctx, ch)
 			if err != nil {
 				return err
 			}
+
+			context := getContext()
+			if context.isShell {
+				var buf bytes.Buffer
+				for value := range ch {
+					buf.Write(value)
+					buf.WriteByte('\n')
+				}
+				return context.shellCtx.ShowPaged(buf.String())
+			}
+
 			for value := range ch {
 				cmd.Println(string(value))
 			}
@@ -257,25 +269,22 @@ func newListWatchCommand(name string) *cobra.Command {
 			if replay {
 				opts = append(opts, list.WithReplay())
 			}
-			if err := l.Watch(context.Background(), watchCh, opts...); err != nil {
+
+			ctx, cancel := getCancelContext(cmd)
+			defer cancel()
+			if err := l.Watch(ctx, watchCh, opts...); err != nil {
 				return err
 			}
 
-			signalCh := make(chan os.Signal, 2)
-			signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-			for {
-				select {
-				case event := <-watchCh:
-					bytes, err := yaml.Marshal(event)
-					if err != nil {
-						cmd.Println(err)
-					} else {
-						cmd.Println(string(bytes))
-					}
-				case <-signalCh:
-					return nil
+			for event := range watchCh {
+				bytes, err := yaml.Marshal(event)
+				if err != nil {
+					cmd.Println(err)
+				} else {
+					cmd.Println(string(bytes))
 				}
 			}
+			return nil
 		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current list values at start")

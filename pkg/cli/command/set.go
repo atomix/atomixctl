@@ -15,14 +15,12 @@
 package command
 
 import (
-	"context"
+	"bytes"
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/set"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 	"os"
-	"os/signal"
-	"syscall"
 )
 
 func newSetCommand() *cobra.Command {
@@ -50,6 +48,8 @@ func newSetCommand() *cobra.Command {
 				subCmd = newSetRemoveCommand(name)
 			case "size":
 				subCmd = newSetSizeCommand(name)
+			case "elements":
+				subCmd = newSetElementsCommand(name)
 			case "clear":
 				subCmd = newSetClearCommand(name)
 			case "watch":
@@ -170,6 +170,44 @@ func newSetSizeCommand(name string) *cobra.Command {
 	return cmd
 }
 
+func newSetElementsCommand(name string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:  "elements",
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			m, err := getSet(cmd, name)
+			if err != nil {
+				return err
+			}
+
+			ch := make(chan string)
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			err = m.Elements(ctx, ch)
+			if err != nil {
+				return err
+			}
+
+			context := getContext()
+			if context.isShell {
+				var buf bytes.Buffer
+				for value := range ch {
+					buf.WriteString(value)
+					buf.WriteByte('\n')
+				}
+				return context.shellCtx.ShowPaged(buf.String())
+			}
+
+			for value := range ch {
+				cmd.Println(value)
+			}
+			return nil
+		},
+	}
+	addClientFlags(cmd)
+	return cmd
+}
+
 func newSetClearCommand(name string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "clear",
@@ -197,31 +235,29 @@ func newSetWatchCommand(name string) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			watchCh := make(chan *set.Event)
 			opts := []set.WatchOption{}
 			replay, _ := cmd.Flags().GetBool("replay")
 			if replay {
 				opts = append(opts, set.WithReplay())
 			}
-			if err := s.Watch(context.Background(), watchCh, opts...); err != nil {
+
+			ctx, cancel := getCancelContext(cmd)
+			defer cancel()
+			if err := s.Watch(ctx, watchCh, opts...); err != nil {
 				return err
 			}
 
-			signalCh := make(chan os.Signal, 2)
-			signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-			for {
-				select {
-				case event := <-watchCh:
-					bytes, err := yaml.Marshal(event)
-					if err != nil {
-						cmd.Println(err)
-					} else {
-						cmd.Println(string(bytes))
-					}
-				case <-signalCh:
-					return nil
+			for event := range watchCh {
+				bytes, err := yaml.Marshal(event)
+				if err != nil {
+					cmd.Println(err)
+				} else {
+					cmd.Println(string(bytes))
 				}
 			}
+			return nil
 		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current set values at start")

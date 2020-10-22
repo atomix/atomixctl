@@ -39,6 +39,21 @@ func addClientFlags(cmd *cobra.Command) {
 	}
 }
 
+func getCancelContext(cmd *cobra.Command) (context.Context, context.CancelFunc) {
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		select {
+		case <-ctx.Done():
+			signal.Stop(sigCh)
+		case <-sigCh:
+			cancel()
+		}
+	}()
+	return ctx, cancel
+}
+
 func getTimeoutContext(cmd *cobra.Command) (context.Context, context.CancelFunc) {
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
