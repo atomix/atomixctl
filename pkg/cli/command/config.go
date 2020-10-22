@@ -18,6 +18,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"path/filepath"
 )
 
 var (
@@ -116,6 +117,14 @@ func setConfig(key string, value string) error {
 
 func getConfig(key string) string {
 	return viper.GetString(key)
+}
+
+func getConfigFile(name string) (string, error) {
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, ".atomix", name), nil
 }
 
 func initConfig() {

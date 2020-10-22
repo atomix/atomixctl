@@ -11,77 +11,78 @@ This project provides a CLI for [Atomix 4].
 
 ![Atomix CLI](https://media.giphy.com/media/cImqHbP1Bt2u5ZTVGg/giphy.gif)
 
+## Installation
+
 To install the CLI, run:
 
 ```bash
-> go get -u github.com/atomix/cli/cmd/atomix
+$ go get -u github.com/atomix/cli/cmd/atomix
 ```
 
-Once the CLI has been installed, initialize the settings:
-
-```bash
-> atomix init
-Created ~/.atomix/config.yaml
-```
-
-The configuration file created in your home directory is used by the CLI
-to connect to the Atomix controller, provide default namespaces and application
-names, etc. It's also used to store configuration changes made by the CLI.
+## Configuration
 
 To configure completion for the CLI, source the output of `atomix completion` with
 the desired shell argument:
 
 ```bash
-source <(atomix completion bash)
+$ source <(atomix completion bash)
 ```
 
-The CLI can be used to deploy and connect to Atomix controllers. To deploy a Kubernetes
-controller, pipe the output of `atomix controller k8s deploy` to `kubectl`:
-
 ```bash
-> atomix controller k8s deploy -s atomix-controller -n kube-system | kubectl apply -f -
+$ source $(atomix completion zsh)
 ```
 
-To connect the CLI to an existing Kubernetes controller, use `k8s connect`:
+To run the CLI in a [Kubernetes] cluster:
 
 ```bash
-> atomix controller k8s connect
+$ kubectl run atomix-cli --rm -it --image atomix/cli:latest --restart Never
+```
+
+Once the CLI has been installed, you can configure the CLI using the `atomix config`
+suite of sub-commands:
+
+```bash
+$ atomix config get controller
+atomix-controller.default.svc.cluster.local:5679
+$ atomix config set controller atomix-controller.kube-system.svc.cluster.local:5679
 atomix-controller.kube-system.svc.cluster.local:5679
 ```
 
-For containerized environments like Kubernetes, a Docker image is provided. The image
-can be build by simply running:
+## Usage
+
+The CLI provides commands for managing distributed primitives in an Atomix database.
+To see the primitives supported by the CLI, use the `--help` flag:
 
 ```bash
-> make
-go build -o build/_output/bin/atomix ./cmd/cli
-docker build . -f build/Dockerfile -t atomix/cli:latest
-...
+$ atomix --help
 ```
 
-To use the CLI in Kubernetes, run the `atomix/cli` Docker image in
-a single pod deployment:
+The CLI and primitive commands can be run from two different contexts. Using the shell,
+primitives can be queried and modified by name:
 
 ```bash
-> kubectl run cli --rm -it --image atomix/cli:latest --image-pull-policy "IfNotPresent" --restart "Never"
+$ atomix map "my-map" put "foo" "Hello world!"
+key: "foo"
+value: "Hello world!"
+version: 1
+$ atomix map "my-map" get "foo"
+value: "Hello world!"
+version: 1
 ```
 
-This command will run the CLI image as a `Deployment` and log into the bash shell.
-Once you've joined the container, be sure to connect to the Atomix controller by running:
+The CLI also provides an interactive shell for operating within a specific context,
+e.g. for commands operating on a specific primitive:
 
 ```bash
-> atomix controller k8s connect
-atomix-controller.kube-system.svc.cluster.local:5679
+$ atomix map "my-map"
+map:my-map> put "foo" "Hello world!"
+key: "foo"
+value: "Hello world!"
+version: 1
+map:my-map> get "foo"
+value: "Hello world!"
+version: 1
+map:my-map> exit
 ```
-
-Once connected, you should be able to see the partition groups deployed in the
-Kubernetes cluster:
-
-```bash
-> atomix groups
-...
-```
-
-Once the shell is exited, the `Deployment` will be deleted.
 
 [Atomix 4]: https://github.com/atomix/atomix/tree/4.0

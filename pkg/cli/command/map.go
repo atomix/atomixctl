@@ -19,35 +19,51 @@ import (
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/map"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 	"os"
 	"os/signal"
 	"syscall"
 )
 
 func newMapCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "map {put,get,remove,size,clear,watch}",
-		Short: "Manage the state of a distributed map",
-	}
-	addClientFlags(cmd)
-	cmd.PersistentFlags().StringP("name", "n", "", "the map name")
-	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_maps"},
-	}
-	cmd.MarkPersistentFlagRequired("name")
-	cmd.AddCommand(newMapGetCommand())
-	cmd.AddCommand(newMapPutCommand())
-	cmd.AddCommand(newMapRemoveCommand())
-	cmd.AddCommand(newMapKeysCommand())
-	cmd.AddCommand(newMapSizeCommand())
-	cmd.AddCommand(newMapClearCommand())
-	cmd.AddCommand(newMapWatchCommand())
-	return cmd
-}
+	return &cobra.Command{
+		Use:                "map <name> [...]",
+		Short:              "Manage a distributed map",
+		Args:               cobra.MinimumNArgs(1),
+		DisableFlagParsing: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// If only the name was specified, open an interactive shell
+			if len(args) == 1 {
+				return runShell(fmt.Sprintf("map:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, os.Args)
+			}
 
-func getMapName(cmd *cobra.Command) string {
-	name, _ := cmd.Flags().GetString("name")
-	return name
+			name := args[0]
+			op := args[1]
+
+			// Get the command for the specified operation
+			var subCmd *cobra.Command
+			switch op {
+			case "get":
+				subCmd = newMapGetCommand(name)
+			case "put":
+				subCmd = newMapPutCommand(name)
+			case "remove":
+				subCmd = newMapRemoveCommand(name)
+			case "keys":
+				subCmd = newMapKeysCommand(name)
+			case "size":
+				subCmd = newMapSizeCommand(name)
+			case "clear":
+				subCmd = newMapClearCommand(name)
+			case "watch":
+				subCmd = newMapWatchCommand(name)
+			}
+
+			// Set the arguments after the name and execute the command
+			subCmd.SetArgs(args[1:])
+			return subCmd.Execute()
+		},
+	}
 }
 
 func getMap(cmd *cobra.Command, name string) _map.Map {
@@ -61,191 +77,178 @@ func getMap(cmd *cobra.Command, name string) _map.Map {
 	return m
 }
 
-func newMapGetCommand() *cobra.Command {
+func newMapGetCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "get <key>",
 		Args: cobra.ExactArgs(1),
-		Run:  runMapGetCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			_map := getMap(cmd, name)
+			key := args[0]
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			value, err := _map.Get(ctx, key)
+			if err != nil {
+				return err
+			} else if value != nil {
+				cmd.Println(value.String())
+			}
+			return nil
+		},
 	}
 }
 
-func runMapGetCommand(cmd *cobra.Command, args []string) {
-	_map := getMap(cmd, getMapName(cmd))
-	key := args[0]
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	value, err := _map.Get(ctx, key)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else if value != nil {
-		ExitWithOutput(value.String())
-	} else {
-		ExitWithOutput("<none>")
-	}
-}
-
-func newMapPutCommand() *cobra.Command {
+func newMapPutCommand(name string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "put <key> <value>",
 		Args: cobra.ExactArgs(2),
-		Run:  runMapPutCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			m := getMap(cmd, name)
+			key := args[0]
+			value := args[1]
+			version, _ := cmd.Flags().GetInt64("version")
+			opts := []_map.PutOption{}
+			if version > 0 {
+				opts = append(opts, _map.IfVersion(_map.Version(version)))
+			}
+
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			kv, err := m.Put(ctx, key, []byte(value), opts...)
+			if err != nil {
+				return err
+			} else if kv != nil {
+				bytes, err := yaml.Marshal(kv)
+				if err != nil {
+					return err
+				}
+				cmd.Println(string(bytes))
+			}
+			return nil
+		},
 	}
 	cmd.Flags().Int64("version", 0, "the entry version")
 	return cmd
 }
 
-func runMapPutCommand(cmd *cobra.Command, args []string) {
-	m := getMap(cmd, getMapName(cmd))
-	key := args[0]
-	value := args[1]
-	version, _ := cmd.Flags().GetInt64("version")
-	opts := []_map.PutOption{}
-	if version > 0 {
-		opts = append(opts, _map.IfVersion(_map.Version(version)))
-	}
-
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	kv, err := m.Put(ctx, key, []byte(value), opts...)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else if kv != nil {
-		ExitWithOutput(kv.String())
-	} else {
-		ExitWithOutput("<none>")
-	}
-}
-
-func newMapRemoveCommand() *cobra.Command {
+func newMapRemoveCommand(name string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "remove <key>",
 		Args: cobra.ExactArgs(1),
-		Run:  runMapRemoveCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			m := getMap(cmd, name)
+			key := args[0]
+			version, _ := cmd.Flags().GetInt64("version")
+			opts := []_map.RemoveOption{}
+			if version > 0 {
+				opts = append(opts, _map.IfVersion(_map.Version(version)))
+			}
+
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			value, err := m.Remove(ctx, key, opts...)
+			if err != nil {
+				return err
+			} else if value != nil {
+				bytes, err := yaml.Marshal(value)
+				if err != nil {
+					return err
+				}
+				cmd.Println(string(bytes))
+			}
+			return nil
+		},
 	}
 	cmd.Flags().Int64("version", 0, "the entry version")
 	return cmd
 }
 
-func runMapRemoveCommand(cmd *cobra.Command, args []string) {
-	m := getMap(cmd, getMapName(cmd))
-	key := args[0]
-	version, _ := cmd.Flags().GetInt64("version")
-	opts := []_map.RemoveOption{}
-	if version > 0 {
-		opts = append(opts, _map.IfVersion(_map.Version(version)))
-	}
-
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	value, err := m.Remove(ctx, key, opts...)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else if value != nil {
-		ExitWithOutput(value.String())
-	} else {
-		ExitWithOutput("<none>")
-	}
-}
-
-func newMapKeysCommand() *cobra.Command {
+func newMapKeysCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "keys",
 		Args: cobra.NoArgs,
-		Run:  runMapKeysCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			m := getMap(cmd, name)
+			ch := make(chan *_map.Entry)
+			err := m.Entries(context.TODO(), ch)
+			if err != nil {
+				return err
+			}
+			for kv := range ch {
+				bytes, err := yaml.Marshal(kv)
+				if err != nil {
+					return err
+				}
+				cmd.Println(string(bytes))
+			}
+			return nil
+		},
 	}
 }
 
-func runMapKeysCommand(cmd *cobra.Command, _ []string) {
-	m := getMap(cmd, getMapName(cmd))
-	ch := make(chan *_map.Entry)
-	err := m.Entries(context.TODO(), ch)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	for kv := range ch {
-		println(fmt.Sprintf("%v", kv))
-	}
-}
-
-func newMapSizeCommand() *cobra.Command {
+func newMapSizeCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "size",
 		Args: cobra.NoArgs,
-		Run:  runMapSizeCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			_map := getMap(cmd, name)
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			size, err := _map.Len(ctx)
+			if err != nil {
+				return err
+			}
+			cmd.Println(size)
+			return nil
+		},
 	}
 }
 
-func runMapSizeCommand(cmd *cobra.Command, _ []string) {
-	_map := getMap(cmd, getMapName(cmd))
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	size, err := _map.Len(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput("%d", size)
-	}
-}
-
-func newMapClearCommand() *cobra.Command {
+func newMapClearCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "clear",
 		Args: cobra.NoArgs,
-		Run:  runMapClearCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			_map := getMap(cmd, name)
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			return _map.Clear(ctx)
+		},
 	}
 }
 
-func runMapClearCommand(cmd *cobra.Command, _ []string) {
-	_map := getMap(cmd, getMapName(cmd))
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	err := _map.Clear(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithSuccess()
-	}
-}
-
-func newMapWatchCommand() *cobra.Command {
+func newMapWatchCommand(name string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "watch",
 		Args: cobra.NoArgs,
-		Run:  runMapWatchCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			m := getMap(cmd, name)
+			watchCh := make(chan *_map.Event)
+			opts := []_map.WatchOption{}
+			replay, _ := cmd.Flags().GetBool("replay")
+			if replay {
+				opts = append(opts, _map.WithReplay())
+			}
+			if err := m.Watch(context.Background(), watchCh, opts...); err != nil {
+				return err
+			}
+
+			signalCh := make(chan os.Signal, 2)
+			signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+			for {
+				select {
+				case event := <-watchCh:
+					bytes, err := yaml.Marshal(event)
+					if err != nil {
+						cmd.Println(err)
+					} else {
+						cmd.Println(string(bytes))
+					}
+				case <-signalCh:
+					return nil
+				}
+			}
+		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current map entries at start")
 	return cmd
-}
-
-func runMapWatchCommand(cmd *cobra.Command, _ []string) {
-	m := getMap(cmd, getMapName(cmd))
-	watchCh := make(chan *_map.Event)
-	opts := []_map.WatchOption{}
-	replay, _ := cmd.Flags().GetBool("replay")
-	if replay {
-		opts = append(opts, _map.WithReplay())
-	}
-	if err := m.Watch(context.Background(), watchCh, opts...); err != nil {
-		ExitWithError(ExitError, err)
-	}
-
-	signalCh := make(chan os.Signal, 2)
-	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-	for {
-		select {
-		case event := <-watchCh:
-			switch event.Type {
-			case _map.EventNone:
-				Output("Replayed: Key: %s, Value: %v, Version: %d", event.Entry.Key, event.Entry.Value, event.Entry.Version)
-			case _map.EventInserted:
-				Output("Inserted: Key: %s, Value: %v, Version: %d", event.Entry.Key, event.Entry.Value, event.Entry.Version)
-			case _map.EventUpdated:
-				Output("Updated: Key: %s, Value: %v, Version: %d", event.Entry.Key, event.Entry.Value, event.Entry.Version)
-			case _map.EventRemoved:
-				Output("Removed: Key: %s, Value: %v, Version: %d", event.Entry.Key, event.Entry.Value, event.Entry.Version)
-			}
-		case <-signalCh:
-			ExitWithSuccess()
-		}
-	}
 }

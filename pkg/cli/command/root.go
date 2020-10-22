@@ -15,7 +15,12 @@
 package command
 
 import (
+	"fmt"
+	"github.com/abiosoft/ishell"
+	"github.com/abiosoft/readline"
 	"github.com/spf13/cobra"
+	"io"
+	"os"
 )
 
 func GetRootCommand() *cobra.Command {
@@ -23,6 +28,9 @@ func GetRootCommand() *cobra.Command {
 		Use:                    "atomix",
 		Short:                  "Atomix command line client",
 		BashCompletionFunction: bashCompletion,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runShell("atomix", os.Stdin, os.Stdout, os.Stderr, os.Args)
+		},
 	}
 
 	addClientFlags(cmd)
@@ -41,4 +49,37 @@ func GetRootCommand() *cobra.Command {
 	cmd.AddCommand(newSetCommand())
 	cmd.AddCommand(newValueCommand())
 	return cmd
+}
+
+func runShell(name string, stdin io.ReadCloser, stdout io.Writer, stderr io.Writer, args []string) error {
+	ctx := getContext()
+	historyFile, err := getConfigFile("history")
+	if err != nil {
+		panic(err)
+	}
+	shell := ishell.NewWithConfig(&readline.Config{
+		Prompt:      fmt.Sprintf("%s>", name),
+		HistoryFile: historyFile,
+		Stdin:       stdin,
+		Stdout:      stdout,
+		Stderr:      stderr,
+	})
+	shell.NotFound(func(context *ishell.Context) {
+		setContextFunc(func(ctx *commandContext) {
+			ctx.shellCtx = context
+		})
+		cmd := GetRootCommand()
+		cmd.SetArgs(append(args, context.RawArgs...))
+		err := cmd.Execute()
+		if err != nil {
+			context.Println(err)
+		}
+	})
+	setContextFunc(func(context *commandContext) {
+		context.isShell = true
+		context.shell = shell
+	})
+	shell.Run()
+	setContext(ctx)
+	return nil
 }

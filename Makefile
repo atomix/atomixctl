@@ -3,8 +3,6 @@ export GO111MODULE=on
 
 .PHONY: build
 
-all: build images
-
 build: deps
 	GOOS=linux GOARCH=amd64 go build -o build/_output/bin/atomix ./cmd/atomix
 
