@@ -31,6 +31,9 @@ func newCounterCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// If only the name was specified, open an interactive shell
 			name := args[0]
+			if name == "-h" || name == "--help" {
+				return cmd.Help()
+			}
 			if len(args) == 1 {
 				return runShell(fmt.Sprintf("counter:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "counter", name))
 			}
@@ -47,6 +50,10 @@ func newCounterCommand() *cobra.Command {
 				subCmd = newCounterIncrementCommand(name)
 			case "decrement":
 				subCmd = newCounterDecrementCommand(name)
+			case "-h", "--help":
+				return cmd.Help()
+			default:
+				return fmt.Errorf("unknown command %s", op)
 			}
 			addClientFlags(subCmd)
 

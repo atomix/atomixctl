@@ -33,6 +33,9 @@ func newLogCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// If only the name was specified, open an interactive shell
 			name := args[0]
+			if name == "-h" || name == "--help" {
+				return cmd.Help()
+			}
 			if len(args) == 1 {
 				return runShell(fmt.Sprintf("log:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "log", name))
 			}
@@ -55,6 +58,10 @@ func newLogCommand() *cobra.Command {
 				subCmd = newLogClearCommand(name)
 			case "watch":
 				subCmd = newLogWatchCommand(name)
+			case "-h", "--help":
+				return cmd.Help()
+			default:
+				return fmt.Errorf("unknown command %s", op)
 			}
 			addClientFlags(subCmd)
 

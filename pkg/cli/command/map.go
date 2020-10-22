@@ -32,6 +32,9 @@ func newMapCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// If only the name was specified, open an interactive shell
 			name := args[0]
+			if name == "-h" || name == "--help" {
+				return cmd.Help()
+			}
 			if len(args) == 1 {
 				return runShell(fmt.Sprintf("map:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "map", name))
 			}
@@ -56,6 +59,10 @@ func newMapCommand() *cobra.Command {
 				subCmd = newMapClearCommand(name)
 			case "watch":
 				subCmd = newMapWatchCommand(name)
+			case "-h", "--help":
+				return cmd.Help()
+			default:
+				return fmt.Errorf("unknown command %s", op)
 			}
 			addClientFlags(subCmd)
 

@@ -31,6 +31,9 @@ func newValueCommand() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// If only the name was specified, open an interactive shell
 			name := args[0]
+			if name == "-h" || name == "--help" {
+				return cmd.Help()
+			}
 			if len(args) == 1 {
 				return runShell(fmt.Sprintf("value:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "value", name))
 			}
@@ -45,6 +48,10 @@ func newValueCommand() *cobra.Command {
 				subCmd = newValueGetCommand(name)
 			case "watch":
 				subCmd = newValueWatchCommand(name)
+			case "-h", "--help":
+				return cmd.Help()
+			default:
+				return fmt.Errorf("unknown command %s", op)
 			}
 			addClientFlags(subCmd)
 
