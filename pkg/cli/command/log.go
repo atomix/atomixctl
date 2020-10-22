@@ -37,7 +37,7 @@ func newLogCommand() *cobra.Command {
 			// If only the name was specified, open an interactive shell
 			name := args[0]
 			if len(args) == 1 {
-				return runShell(fmt.Sprintf("counter:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "log", name))
+				return runShell(fmt.Sprintf("log:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "log", name))
 			}
 
 			// Get the command for the specified operation
@@ -244,9 +244,10 @@ func newLogWatchCommand(name string) *cobra.Command {
 				case event := <-watchCh:
 					bytes, err := yaml.Marshal(event)
 					if err != nil {
-						return err
+						cmd.Println(err)
+					} else {
+						cmd.Println(string(bytes))
 					}
-					cmd.Println(string(bytes))
 				case <-signalCh:
 					return nil
 				}

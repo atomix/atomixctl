@@ -33,7 +33,7 @@ func newLockCommand() *cobra.Command {
 			// If only the name was specified, open an interactive shell
 			name := args[0]
 			if len(args) == 1 {
-				return runShell(fmt.Sprintf("counter:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "lock", name))
+				return runShell(fmt.Sprintf("lock:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "lock", name))
 			}
 
 			// Get the command for the specified operation
