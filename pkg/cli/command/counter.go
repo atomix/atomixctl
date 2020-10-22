@@ -132,7 +132,7 @@ func newCounterIncrementCommand(name string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var delta int64
+			var delta int64 = 1
 			if len(args) > 0 {
 				value, err := strconv.Atoi(args[0])
 				if err != nil {
@@ -162,7 +162,7 @@ func newCounterDecrementCommand(name string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var delta int64
+			var delta int64 = 1
 			if len(args) > 0 {
 				value, err := strconv.Atoi(args[0])
 				if err != nil {
