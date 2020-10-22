@@ -27,6 +27,7 @@ import (
 
 func addClientFlags(cmd *cobra.Command) {
 	cmd.PersistentFlags().StringP("scope", "s", viper.GetString("scope"), "the application scope")
+	cmd.PersistentFlags().StringP("namespace", "n", viper.GetString("namespace"), "the database namespace")
 	cmd.PersistentFlags().StringP("database", "d", viper.GetString("database"), "the database name")
 	cmd.PersistentFlags().String("config", "", "config file (default: $HOME/.atomix/config.yaml)")
 	cmd.PersistentFlags().Duration("timeout", 15*time.Second, "the operation timeout")
@@ -74,8 +75,9 @@ func getClientController() string {
 	return viper.GetString("controller")
 }
 
-func getClientNamespace() string {
-	return viper.GetString("namespace")
+func getClientNamespace(cmd *cobra.Command) string {
+	namespace, _ := cmd.Flags().GetString("namespace")
+	return namespace
 }
 
 func getClientDatabase(cmd *cobra.Command) string {
@@ -94,7 +96,7 @@ func getClient(cmd *cobra.Command) (*client.Client, error) {
 	return client.NewWithContext(
 		ctx,
 		getClientController(),
-		client.WithNamespace(getClientNamespace()),
+		client.WithNamespace(getClientNamespace(cmd)),
 		client.WithScope(getClientScope(cmd)))
 }
 
