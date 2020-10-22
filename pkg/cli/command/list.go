@@ -16,7 +16,9 @@ package command
 
 import (
 	"context"
+	"fmt"
 	"github.com/atomix/go-client/pkg/client/list"
+	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
 	"os"
 	"os/signal"
@@ -25,243 +27,240 @@ import (
 )
 
 func newListCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "list {put,get,append,insert,remove,items,size,clear,watch}",
-		Short: "Manage the state of a distributed list",
+	return &cobra.Command{
+		Use:                "counter <name> [...]",
+		Short:              "Manage the state of a distributed counter",
+		Args:               cobra.MinimumNArgs(1),
+		DisableFlagParsing: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// If only the name was specified, open an interactive shell
+			name := args[0]
+			if len(args) == 1 {
+				return runShell(fmt.Sprintf("counter:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "counter", name))
+			}
+
+			// Get the command for the specified operation
+			var subCmd *cobra.Command
+			op := args[1]
+			switch op {
+			case "get":
+				subCmd = newListGetCommand(name)
+			case "append":
+				subCmd = newListAppendCommand(name)
+			case "insert":
+				subCmd = newListInsertCommand(name)
+			case "remove":
+				subCmd = newListRemoveCommand(name)
+			case "items":
+				subCmd = newListItemsCommand(name)
+			case "size":
+				subCmd = newListSizeCommand(name)
+			case "clear":
+				subCmd = newListClearCommand(name)
+			case "watch":
+				subCmd = newListWatchCommand(name)
+			}
+
+			// Set the arguments after the name and execute the command
+			subCmd.SetArgs(args[2:])
+			return subCmd.Execute()
+		},
 	}
-	addClientFlags(cmd)
-	cmd.PersistentFlags().StringP("name", "n", "", "the list name")
-	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_lists"},
-	}
-	cmd.MarkPersistentFlagRequired("name")
-	cmd.AddCommand(newListGetCommand())
-	cmd.AddCommand(newListAppendCommand())
-	cmd.AddCommand(newListInsertCommand())
-	cmd.AddCommand(newListRemoveCommand())
-	cmd.AddCommand(newListItemsCommand())
-	cmd.AddCommand(newListSizeCommand())
-	cmd.AddCommand(newListClearCommand())
-	cmd.AddCommand(newListWatchCommand())
-	return cmd
 }
 
-func getListName(cmd *cobra.Command) string {
-	name, _ := cmd.Flags().GetString("name")
-	return name
-}
-
-func getList(cmd *cobra.Command, name string) list.List {
+func getList(cmd *cobra.Command, name string) (list.List, error) {
 	database := getDatabase(cmd)
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	m, err := database.GetList(ctx, name)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	return m
+	return database.GetList(ctx, name)
 }
 
-func newListGetCommand() *cobra.Command {
+func newListGetCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "get <index>",
 		Args: cobra.ExactArgs(1),
-		Run:  runListGetCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			list, err := getList(cmd, name)
+			if err != nil {
+				return err
+			}
+			indexStr := args[0]
+			index, err := strconv.Atoi(indexStr)
+			if err != nil {
+				ExitWithError(ExitBadArgs, err)
+			}
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			value, err := list.Get(ctx, index)
+			if value != nil {
+				cmd.Println(string(value))
+			}
+			return err
+		},
 	}
 }
 
-func runListGetCommand(cmd *cobra.Command, args []string) {
-	list := getList(cmd, getListName(cmd))
-	indexStr := args[0]
-	index, err := strconv.Atoi(indexStr)
-	if err != nil {
-		ExitWithError(ExitBadArgs, err)
-	}
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	value, err := list.Get(ctx, index)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else if value != nil {
-		ExitWithOutput(string(value))
-	} else {
-		ExitWithOutput("<none>")
-	}
-}
-
-func newListAppendCommand() *cobra.Command {
+func newListAppendCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "append <value>",
 		Args: cobra.ExactArgs(1),
-		Run:  runListAppendCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			l, err := getList(cmd, name)
+			if err != nil {
+				return err
+			}
+			value := args[0]
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			return l.Append(ctx, []byte(value))
+		},
 	}
 }
 
-func runListAppendCommand(cmd *cobra.Command, args []string) {
-	l := getList(cmd, getListName(cmd))
-	value := args[0]
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	err := l.Append(ctx, []byte(value))
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput("<none>")
-	}
-}
-
-func newListInsertCommand() *cobra.Command {
+func newListInsertCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "insert <index> <value>",
 		Args: cobra.ExactArgs(2),
-		Run:  runListInsertCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			l, err := getList(cmd, name)
+			if err != nil {
+				return err
+			}
+			indexStr := args[0]
+			index, err := strconv.Atoi(indexStr)
+			if err != nil {
+				ExitWithError(ExitBadArgs, err)
+			}
+			value := args[1]
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			return l.Insert(ctx, int(index), []byte(value))
+		},
 	}
 }
 
-func runListInsertCommand(cmd *cobra.Command, args []string) {
-	l := getList(cmd, getListName(cmd))
-	indexStr := args[0]
-	index, err := strconv.Atoi(indexStr)
-	if err != nil {
-		ExitWithError(ExitBadArgs, err)
-	}
-	value := args[1]
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	err = l.Insert(ctx, int(index), []byte(value))
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput("<none>")
-	}
-}
-
-func newListRemoveCommand() *cobra.Command {
+func newListRemoveCommand(name string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "remove <index>",
 		Args: cobra.ExactArgs(1),
-		Run:  runListRemoveCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			m, err := getList(cmd, name)
+			if err != nil {
+				return err
+			}
+			indexStr := args[0]
+			index, err := strconv.Atoi(indexStr)
+			if err != nil {
+				ExitWithError(ExitBadArgs, err)
+			}
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			value, err := m.Remove(ctx, int(index))
+			if value != nil {
+				cmd.Println(string(value))
+			}
+			return err
+		},
 	}
 	cmd.Flags().Int64P("version", "v", 0, "the entry version")
 	return cmd
 }
 
-func runListRemoveCommand(cmd *cobra.Command, args []string) {
-	m := getList(cmd, getListName(cmd))
-	indexStr := args[0]
-	index, err := strconv.Atoi(indexStr)
-	if err != nil {
-		ExitWithError(ExitBadArgs, err)
-	}
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	value, err := m.Remove(ctx, int(index))
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else if value != nil {
-		ExitWithOutput(string(value))
-	} else {
-		ExitWithOutput("<none>")
-	}
-}
-
-func newListItemsCommand() *cobra.Command {
+func newListItemsCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "items",
 		Args: cobra.NoArgs,
-		Run:  runListItemsCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			m, err := getList(cmd, name)
+			if err != nil {
+				return err
+			}
+			ch := make(chan []byte)
+			err = m.Items(context.TODO(), ch)
+			if err != nil {
+				return err
+			}
+			for value := range ch {
+				cmd.Println(string(value))
+			}
+			return nil
+		},
 	}
 }
 
-func runListItemsCommand(cmd *cobra.Command, _ []string) {
-	m := getList(cmd, getListName(cmd))
-	ch := make(chan []byte)
-	err := m.Items(context.TODO(), ch)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	for value := range ch {
-		println(string(value))
-	}
-}
-
-func newListSizeCommand() *cobra.Command {
+func newListSizeCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "size",
 		Args: cobra.NoArgs,
-		Run:  runListSizeCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			list, err := getList(cmd, name)
+			if err != nil {
+				return err
+			}
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			size, err := list.Len(ctx)
+			if err != nil {
+				return err
+			}
+			cmd.Println(size)
+			return nil
+		},
 	}
 }
 
-func runListSizeCommand(cmd *cobra.Command, _ []string) {
-	list := getList(cmd, getListName(cmd))
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	size, err := list.Len(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput("%d", size)
-	}
-}
-
-func newListClearCommand() *cobra.Command {
+func newListClearCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "clear",
 		Args: cobra.NoArgs,
-		Run:  runListClearCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			list, err := getList(cmd, name)
+			if err != nil {
+				return err
+			}
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			return list.Clear(ctx)
+		},
 	}
 }
 
-func runListClearCommand(cmd *cobra.Command, _ []string) {
-	list := getList(cmd, getListName(cmd))
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	err := list.Clear(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithSuccess()
-	}
-}
-
-func newListWatchCommand() *cobra.Command {
+func newListWatchCommand(name string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "watch",
 		Args: cobra.NoArgs,
-		Run:  runListWatchCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			l, err := getList(cmd, name)
+			if err != nil {
+				return err
+			}
+			watchCh := make(chan *list.Event)
+			opts := []list.WatchOption{}
+			replay, _ := cmd.Flags().GetBool("replay")
+			if replay {
+				opts = append(opts, list.WithReplay())
+			}
+			if err := l.Watch(context.Background(), watchCh, opts...); err != nil {
+				return err
+			}
+
+			signalCh := make(chan os.Signal, 2)
+			signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+			for {
+				select {
+				case event := <-watchCh:
+					bytes, err := yaml.Marshal(event)
+					if err != nil {
+						cmd.Println(err)
+					} else {
+						cmd.Println(string(bytes))
+					}
+				case <-signalCh:
+					return nil
+				}
+			}
+		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current list values at start")
 	return cmd
-}
-
-func runListWatchCommand(cmd *cobra.Command, _ []string) {
-	l := getList(cmd, getListName(cmd))
-	watchCh := make(chan *list.Event)
-	opts := []list.WatchOption{}
-	replay, _ := cmd.Flags().GetBool("replay")
-	if replay {
-		opts = append(opts, list.WithReplay())
-	}
-	if err := l.Watch(context.Background(), watchCh, opts...); err != nil {
-		ExitWithError(ExitError, err)
-	}
-
-	signalCh := make(chan os.Signal, 2)
-	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
-	for {
-		select {
-		case event := <-watchCh:
-			switch event.Type {
-			case list.EventNone:
-				Output("Replayed: %v", event.Value)
-			case list.EventInserted:
-				Output("Inserted: %v", event.Value)
-			case list.EventRemoved:
-				Output("Removed: %v", event.Value)
-			}
-		case <-signalCh:
-			ExitWithSuccess()
-		}
-	}
 }
