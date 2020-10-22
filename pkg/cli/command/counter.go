@@ -15,27 +15,45 @@
 package command
 
 import (
+	"fmt"
 	"github.com/atomix/go-client/pkg/client/counter"
 	"github.com/spf13/cobra"
+	"os"
 	"strconv"
 )
 
 func newCounterCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "counter {get,set,increment,decrement}",
-		Short: "Manage the state of a distributed counter",
+	return &cobra.Command{
+		Use:                "counter <name> [...]",
+		Short:              "Manage the state of a distributed counter",
+		Args:               cobra.MinimumNArgs(1),
+		DisableFlagParsing: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// If only the name was specified, open an interactive shell
+			name := args[0]
+			if len(args) == 1 {
+				return runShell(fmt.Sprintf("map:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "map", name))
+			}
+
+			// Get the command for the specified operation
+			var subCmd *cobra.Command
+			op := args[1]
+			switch op {
+			case "get":
+				subCmd = newCounterGetCommand(name)
+			case "set":
+				subCmd = newCounterSetCommand(name)
+			case "increment":
+				subCmd = newCounterIncrementCommand(name)
+			case "decrement":
+				subCmd = newCounterDecrementCommand(name)
+			}
+
+			// Set the arguments after the name and execute the command
+			subCmd.SetArgs(args[2:])
+			return subCmd.Execute()
+		},
 	}
-	addClientFlags(cmd)
-	cmd.PersistentFlags().StringP("name", "n", "", "the list name")
-	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_counters"},
-	}
-	cmd.MarkPersistentFlagRequired("name")
-	cmd.AddCommand(newCounterGetCommand())
-	cmd.AddCommand(newCounterSetCommand())
-	cmd.AddCommand(newCounterIncrementCommand())
-	cmd.AddCommand(newCounterDecrementCommand())
-	return cmd
 }
 
 func getCounterName(cmd *cobra.Command) string {
@@ -54,102 +72,94 @@ func getCounter(cmd *cobra.Command, name string) counter.Counter {
 	return m
 }
 
-func newCounterGetCommand() *cobra.Command {
+func newCounterGetCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "get",
 		Args: cobra.NoArgs,
-		Run:  runCounterGetCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			counter := getCounter(cmd, getCounterName(cmd))
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			value, err := counter.Get(ctx)
+			if err != nil {
+				return err
+			}
+			cmd.Println(value)
+			return nil
+		},
 	}
 }
 
-func runCounterGetCommand(cmd *cobra.Command, _ []string) {
-	counter := getCounter(cmd, getCounterName(cmd))
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	value, err := counter.Get(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput("%d", value)
-	}
-}
-
-func newCounterSetCommand() *cobra.Command {
+func newCounterSetCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "set <value>",
 		Args: cobra.ExactArgs(1),
-		Run:  runCounterSetCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			counter := getCounter(cmd, getCounterName(cmd))
+			value, err := strconv.Atoi(args[0])
+			if err != nil {
+				return err
+			}
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			err = counter.Set(ctx, int64(value))
+			if err != nil {
+				return err
+			}
+			cmd.Println(value)
+			return nil
+		},
 	}
 }
 
-func runCounterSetCommand(cmd *cobra.Command, args []string) {
-	counter := getCounter(cmd, getCounterName(cmd))
-	value, err := strconv.Atoi(args[0])
-	if err != nil {
-		ExitWithError(ExitBadArgs, err)
-	}
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	err = counter.Set(ctx, int64(value))
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput("%d", value)
-	}
-}
-
-func newCounterIncrementCommand() *cobra.Command {
+func newCounterIncrementCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "increment [delta]",
 		Args: cobra.MaximumNArgs(1),
-		Run:  runCounterIncrementCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			counter := getCounter(cmd, getCounterName(cmd))
+			var delta int64
+			if len(args) > 0 {
+				value, err := strconv.Atoi(args[0])
+				if err != nil {
+					return err
+				}
+				delta = int64(value)
+			}
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			value, err := counter.Increment(ctx, delta)
+			if err != nil {
+				return err
+			}
+			cmd.Println(value)
+			return nil
+		},
 	}
 }
 
-func runCounterIncrementCommand(cmd *cobra.Command, args []string) {
-	counter := getCounter(cmd, getCounterName(cmd))
-	var delta int64
-	if len(args) > 0 {
-		value, err := strconv.Atoi(args[0])
-		if err != nil {
-			ExitWithError(ExitBadArgs, err)
-		}
-		delta = int64(value)
-	}
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	value, err := counter.Increment(ctx, delta)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput("%d", value)
-	}
-}
-
-func newCounterDecrementCommand() *cobra.Command {
+func newCounterDecrementCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "decrement [delta]",
 		Args: cobra.MaximumNArgs(1),
-		Run:  runCounterDecrementCommand,
-	}
-}
-
-func runCounterDecrementCommand(cmd *cobra.Command, args []string) {
-	counter := getCounter(cmd, getCounterName(cmd))
-	var delta int64
-	if len(args) > 0 {
-		value, err := strconv.Atoi(args[0])
-		if err != nil {
-			ExitWithError(ExitBadArgs, err)
-		}
-		delta = int64(value)
-	}
-	ctx, cancel := getTimeoutContext(cmd)
-	defer cancel()
-	value, err := counter.Decrement(ctx, delta)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput("%d", value)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			counter := getCounter(cmd, getCounterName(cmd))
+			var delta int64
+			if len(args) > 0 {
+				value, err := strconv.Atoi(args[0])
+				if err != nil {
+					return err
+				}
+				delta = int64(value)
+			}
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			value, err := counter.Decrement(ctx, delta)
+			if err != nil {
+				return err
+			}
+			cmd.Println(value)
+			return nil
+		},
 	}
 }
