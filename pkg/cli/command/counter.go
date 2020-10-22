@@ -56,11 +56,6 @@ func newCounterCommand() *cobra.Command {
 	}
 }
 
-func getCounterName(cmd *cobra.Command) string {
-	name, _ := cmd.Flags().GetString("name")
-	return name
-}
-
 func getCounter(cmd *cobra.Command, name string) counter.Counter {
 	database := getDatabase(cmd)
 	ctx, cancel := getTimeoutContext(cmd)
@@ -77,7 +72,7 @@ func newCounterGetCommand(name string) *cobra.Command {
 		Use:  "get",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			counter := getCounter(cmd, getCounterName(cmd))
+			counter := getCounter(cmd, name)
 			ctx, cancel := getTimeoutContext(cmd)
 			defer cancel()
 			value, err := counter.Get(ctx)
@@ -95,7 +90,7 @@ func newCounterSetCommand(name string) *cobra.Command {
 		Use:  "set <value>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			counter := getCounter(cmd, getCounterName(cmd))
+			counter := getCounter(cmd, name)
 			value, err := strconv.Atoi(args[0])
 			if err != nil {
 				return err
@@ -117,7 +112,7 @@ func newCounterIncrementCommand(name string) *cobra.Command {
 		Use:  "increment [delta]",
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			counter := getCounter(cmd, getCounterName(cmd))
+			counter := getCounter(cmd, name)
 			var delta int64
 			if len(args) > 0 {
 				value, err := strconv.Atoi(args[0])
@@ -143,7 +138,7 @@ func newCounterDecrementCommand(name string) *cobra.Command {
 		Use:  "decrement [delta]",
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			counter := getCounter(cmd, getCounterName(cmd))
+			counter := getCounter(cmd, name)
 			var delta int64
 			if len(args) > 0 {
 				value, err := strconv.Atoi(args[0])
