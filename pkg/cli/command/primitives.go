@@ -16,7 +16,17 @@ package command
 
 import (
 	"fmt"
+	"github.com/atomix/go-client/pkg/client/counter"
+	"github.com/atomix/go-client/pkg/client/election"
+	"github.com/atomix/go-client/pkg/client/indexedmap"
+	"github.com/atomix/go-client/pkg/client/leader"
+	"github.com/atomix/go-client/pkg/client/list"
+	"github.com/atomix/go-client/pkg/client/lock"
+	"github.com/atomix/go-client/pkg/client/log"
+	"github.com/atomix/go-client/pkg/client/map"
 	"github.com/atomix/go-client/pkg/client/primitive"
+	"github.com/atomix/go-client/pkg/client/set"
+	"github.com/atomix/go-client/pkg/client/value"
 	"github.com/iancoleman/strcase"
 	"github.com/spf13/cobra"
 	"io"
@@ -27,162 +37,135 @@ func newGetPrimitivesCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "primitives [args]",
 		Short: "List primitives in a database",
-		Run:   runGetPrimitivesCommand,
-	}
-	cmd.Flags().StringP("type", "t", "", "the type of primitives to list")
-	cmd.Flags().Lookup("type").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_primitive_types"},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getPrimitives(cmd, "")
+		},
 	}
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
-}
-
-func runGetPrimitivesCommand(cmd *cobra.Command, _ []string) {
-	typeName, _ := cmd.Flags().GetString("type")
-	getPrimitives(cmd, typeName)
 }
 
 func newGetCountersCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "counters [args]",
 		Short: "List counters in a database",
-		Run:   runGetCountersCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getPrimitives(cmd, counter.Type)
+		},
 	}
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
-}
-
-func runGetCountersCommand(cmd *cobra.Command, _ []string) {
-	getPrimitives(cmd, "counter")
 }
 
 func newGetElectionsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "elections [args]",
 		Short: "List elections in a database",
-		Run:   runGetElectionsCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getPrimitives(cmd, election.Type)
+		},
 	}
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
-}
-
-func runGetElectionsCommand(cmd *cobra.Command, _ []string) {
-	getPrimitives(cmd, "election")
 }
 
 func newGetIndexedMapsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "indexed-maps [args]",
 		Short: "List indexed maps in a database",
-		Run:   runGetIndexedMapsCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getPrimitives(cmd, indexedmap.Type)
+		},
 	}
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
-}
-
-func runGetIndexedMapsCommand(cmd *cobra.Command, _ []string) {
-	getPrimitives(cmd, "indexed-map")
 }
 
 func newGetLeaderLatchesCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "leader-latches [args]",
 		Short: "List leader latches in a database",
-		Run:   runGetLeaderLatchesCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getPrimitives(cmd, leader.Type)
+		},
 	}
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
-}
-
-func runGetLeaderLatchesCommand(cmd *cobra.Command, _ []string) {
-	getPrimitives(cmd, "leader-latch")
 }
 
 func newGetListsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "lists [args]",
 		Short: "List lists in a database",
-		Run:   runGetListsCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getPrimitives(cmd, list.Type)
+		},
 	}
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
-}
-
-func runGetListsCommand(cmd *cobra.Command, _ []string) {
-	getPrimitives(cmd, "list")
 }
 
 func newGetLocksCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "locks [args]",
 		Short: "List locks in a database",
-		Run:   runGetLocksCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getPrimitives(cmd, lock.Type)
+		},
 	}
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
-}
-
-func runGetLocksCommand(cmd *cobra.Command, _ []string) {
-	getPrimitives(cmd, "lock")
 }
 
 func newGetLogsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "logs [args]",
 		Short: "List logs in a database",
-		Run:   runGetLogsCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getPrimitives(cmd, log.Type)
+		},
 	}
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
-}
-
-func runGetLogsCommand(cmd *cobra.Command, _ []string) {
-	getPrimitives(cmd, "log")
 }
 
 func newGetMapsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "maps [args]",
 		Short: "List maps in a database",
-		Run:   runGetMapsCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getPrimitives(cmd, _map.Type)
+		},
 	}
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
-}
-
-func runGetMapsCommand(cmd *cobra.Command, _ []string) {
-	getPrimitives(cmd, "map")
 }
 
 func newGetSetsCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "sets [args]",
 		Short: "List sets in a database",
-		Run:   runGetSetsCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getPrimitives(cmd, set.Type)
+		},
 	}
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
-}
-
-func runGetSetsCommand(cmd *cobra.Command, _ []string) {
-	getPrimitives(cmd, "set")
 }
 
 func newGetValuesCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "values [args]",
 		Short: "List values in a database",
-		Run:   runGetValuesCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return getPrimitives(cmd, value.Type)
+		},
 	}
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
 }
 
-func runGetValuesCommand(cmd *cobra.Command, _ []string) {
-	getPrimitives(cmd, "value")
-}
-
-func getPrimitives(cmd *cobra.Command, typeName string) error {
+func getPrimitives(cmd *cobra.Command, primitiveType primitive.Type) error {
 	database, err := getDatabase(cmd)
 	if err != nil {
 		return err
@@ -190,10 +173,10 @@ func getPrimitives(cmd *cobra.Command, typeName string) error {
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	var primitives []primitive.Metadata
-	if typeName == "" {
+	if primitiveType == "" {
 		primitives, err = database.GetPrimitives(ctx)
 	} else {
-		primitives, err = database.GetPrimitives(ctx, primitive.WithPrimitiveType(primitive.Type(strcase.ToCamel(typeName))))
+		primitives, err = database.GetPrimitives(ctx, primitive.WithPrimitiveType(primitiveType))
 	}
 
 	if err != nil {
