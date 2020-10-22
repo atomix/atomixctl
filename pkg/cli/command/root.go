@@ -79,6 +79,16 @@ func runShell(name string, stdin io.ReadCloser, stdout io.Writer, stderr io.Writ
 		context.isShell = true
 		context.shell = shell
 	})
+	shell.Interrupt(func(c *ishell.Context, count int, input string) {
+		if ctx.isShell {
+			shell.Stop()
+		} else if count >= 2 {
+			c.Println("Interrupted")
+			os.Exit(1)
+		} else {
+			c.Println("Input Ctrl-c once more to exit")
+		}
+	})
 	shell.Run()
 	setContext(ctx)
 	return nil
