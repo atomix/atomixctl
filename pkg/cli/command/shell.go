@@ -18,11 +18,12 @@ import (
 	"fmt"
 	"github.com/abiosoft/ishell"
 	"github.com/abiosoft/readline"
+	"github.com/spf13/cobra"
 	"io"
 	"os"
 )
 
-func runShell(name string, stdin io.ReadCloser, stdout io.Writer, stderr io.Writer, args []string) error {
+func runShell(cmd *cobra.Command, name string, stdin io.ReadCloser, stdout io.Writer, stderr io.Writer, args []string) error {
 	parentCtx := getContext()
 	if parentCtx.isShell {
 		name = fmt.Sprintf("%s:%s", parentCtx.shellName, name)
@@ -57,6 +58,7 @@ func runShell(name string, stdin io.ReadCloser, stdout io.Writer, stderr io.Writ
 		ctx.isShell = true
 		ctx.shellName = name
 		ctx.shell = shell
+		ctx.shellCmd = cmd
 	})
 	shell.Interrupt(func(context *ishell.Context, count int, input string) {
 		if parentCtx.isShell {
@@ -70,6 +72,12 @@ func runShell(name string, stdin io.ReadCloser, stdout io.Writer, stderr io.Writ
 	})
 	shell.EOF(func(context *ishell.Context) {
 		context.Stop()
+	})
+	shell.AddCmd(&ishell.Cmd{
+		Name: "help",
+		Func: func(context *ishell.Context) {
+			cmd.Help()
+		},
 	})
 	shell.Run()
 	setContext(parentCtx)
