@@ -24,105 +24,103 @@ import (
 )
 
 func newLockCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "lock {lock,get}",
-		Short: "Manage the state of a distributed lock",
+	return &cobra.Command{
+		Use:                "lock <name> [...]",
+		Short:              "Manage the state of a distributed lock",
+		Args:               cobra.MinimumNArgs(1),
+		DisableFlagParsing: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// If only the name was specified, open an interactive shell
+			name := args[0]
+			if len(args) == 1 {
+				return runShell(fmt.Sprintf("counter:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "lock", name))
+			}
+
+			// Get the command for the specified operation
+			var subCmd *cobra.Command
+			op := args[1]
+			switch op {
+			case "get":
+				subCmd = newLockGetCommand(name)
+			case "lock":
+				subCmd = newLockLockCommand(name)
+			}
+
+			// Set the arguments after the name and execute the command
+			subCmd.SetArgs(args[2:])
+			return subCmd.Execute()
+		},
 	}
-	addClientFlags(cmd)
-	cmd.PersistentFlags().StringP("name", "n", "", "the lock name")
-	cmd.PersistentFlags().Lookup("name").Annotations = map[string][]string{
-		cobra.BashCompCustom: {"__atomix_get_locks"},
-	}
-	cmd.MarkPersistentFlagRequired("name")
-	cmd.AddCommand(newLockLockCommand())
-	cmd.AddCommand(newLockGetCommand())
-	return cmd
 }
 
-func getLockName(cmd *cobra.Command) string {
-	name, _ := cmd.Flags().GetString("name")
-	return name
-}
-
-func getLock(cmd *cobra.Command, name string) lock.Lock {
+func getLock(cmd *cobra.Command, name string) (lock.Lock, error) {
 	database := getDatabase(cmd)
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	m, err := database.GetLock(ctx, name)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	return m
+	return database.GetLock(ctx, name)
 }
 
-func newLockLockCommand() *cobra.Command {
+func newLockLockCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:  "lock",
 		Args: cobra.NoArgs,
-		Run:  runLockLockCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			lock, err := getLock(cmd, name)
+			if err != nil {
+				return err
+			}
+
+			ctx, cancel := getTimeoutContext(cmd)
+			version, err := lock.Lock(ctx)
+			cancel()
+			if err != nil {
+				return err
+			}
+			cmd.Println(version)
+
+			ch := make(chan os.Signal, 2)
+			signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
+			<-ch
+
+			ctx, cancel = getTimeoutContext(cmd)
+			_, err = lock.Unlock(ctx)
+			cancel()
+			return err
+		},
 	}
 }
 
-func runLockLockCommand(cmd *cobra.Command, _ []string) {
-	lock := getLock(cmd, getLockName(cmd))
-	ctx, cancel := getTimeoutContext(cmd)
-	version, err := lock.Lock(ctx)
-	cancel()
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	fmt.Println(fmt.Sprintf("Acquired lock %d", version))
-	ch := make(chan os.Signal, 2)
-	signal.Notify(ch, os.Interrupt, syscall.SIGTERM)
-	<-ch
-	ctx, cancel = getTimeoutContext(cmd)
-	_, err = lock.Unlock(ctx)
-	cancel()
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput(fmt.Sprintf("Released lock %d", version))
-	}
-}
-
-func newLockGetCommand() *cobra.Command {
+func newLockGetCommand(name string) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "get",
 		Args: cobra.NoArgs,
-		Run:  runLockGetCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			l, err := getLock(cmd, name)
+			if err != nil {
+				return err
+			}
+
+			version, _ := cmd.Flags().GetUint64("version")
+			var opts []lock.IsLockedOption
+			if version != 0 {
+				opts = append(opts, lock.IfVersion(version))
+			}
+
+			ctx, cancel := getTimeoutContext(cmd)
+			defer cancel()
+			locked, err := l.IsLocked(ctx, opts...)
+			if err != nil {
+				return err
+			}
+
+			if locked {
+				cmd.Println("locked")
+			} else {
+				cmd.Println("unlocked")
+			}
+			return nil
+		},
 	}
 	cmd.Flags().Uint64P("version", "v", 0, "the lock version")
 	return cmd
-}
-
-func runLockGetCommand(cmd *cobra.Command, _ []string) {
-	l := getLock(cmd, getLockName(cmd))
-	version, _ := cmd.Flags().GetUint64("version")
-	if version == 0 {
-		ctx, cancel := getTimeoutContext(cmd)
-		defer cancel()
-		locked, err := l.IsLocked(ctx)
-		if err != nil {
-			ExitWithError(ExitError, err)
-		} else {
-			if locked {
-				ExitWithOutput("<locked>")
-			} else {
-				ExitWithOutput("<unlocked>")
-			}
-		}
-	} else {
-		ctx, cancel := getTimeoutContext(cmd)
-		defer cancel()
-		locked, err := l.IsLocked(ctx, lock.IfVersion(version))
-		if err != nil {
-			ExitWithError(ExitError, err)
-		} else {
-			if locked {
-				ExitWithOutput("<locked>")
-			} else {
-				ExitWithOutput("<unlocked>")
-			}
-		}
-	}
 }
