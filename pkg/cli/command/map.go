@@ -65,15 +65,14 @@ func newMapCommand() *cobra.Command {
 	}
 }
 
-func getMap(cmd *cobra.Command, name string) _map.Map {
-	database := getDatabase(cmd)
+func getMap(cmd *cobra.Command, name string) (_map.Map, error) {
+	database, err := getDatabase(cmd)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	m, err := database.GetMap(ctx, name)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	return m
+	return database.GetMap(ctx, name)
 }
 
 func newMapGetCommand(name string) *cobra.Command {
@@ -81,7 +80,10 @@ func newMapGetCommand(name string) *cobra.Command {
 		Use:  "get <key>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_map := getMap(cmd, name)
+			_map, err := getMap(cmd, name)
+			if err != nil {
+				return err
+			}
 			key := args[0]
 			ctx, cancel := getTimeoutContext(cmd)
 			defer cancel()
@@ -101,7 +103,10 @@ func newMapPutCommand(name string) *cobra.Command {
 		Use:  "put <key> <value>",
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			m := getMap(cmd, name)
+			m, err := getMap(cmd, name)
+			if err != nil {
+				return err
+			}
 			key := args[0]
 			value := args[1]
 			version, _ := cmd.Flags().GetInt64("version")
@@ -134,7 +139,10 @@ func newMapRemoveCommand(name string) *cobra.Command {
 		Use:  "remove <key>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			m := getMap(cmd, name)
+			m, err := getMap(cmd, name)
+			if err != nil {
+				return err
+			}
 			key := args[0]
 			version, _ := cmd.Flags().GetInt64("version")
 			opts := []_map.RemoveOption{}
@@ -166,9 +174,12 @@ func newMapKeysCommand(name string) *cobra.Command {
 		Use:  "keys",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			m := getMap(cmd, name)
+			m, err := getMap(cmd, name)
+			if err != nil {
+				return err
+			}
 			ch := make(chan *_map.Entry)
-			err := m.Entries(context.TODO(), ch)
+			err = m.Entries(context.TODO(), ch)
 			if err != nil {
 				return err
 			}
@@ -189,7 +200,10 @@ func newMapSizeCommand(name string) *cobra.Command {
 		Use:  "size",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_map := getMap(cmd, name)
+			_map, err := getMap(cmd, name)
+			if err != nil {
+				return err
+			}
 			ctx, cancel := getTimeoutContext(cmd)
 			defer cancel()
 			size, err := _map.Len(ctx)
@@ -207,7 +221,10 @@ func newMapClearCommand(name string) *cobra.Command {
 		Use:  "clear",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_map := getMap(cmd, name)
+			_map, err := getMap(cmd, name)
+			if err != nil {
+				return err
+			}
 			ctx, cancel := getTimeoutContext(cmd)
 			defer cancel()
 			return _map.Clear(ctx)
@@ -220,7 +237,10 @@ func newMapWatchCommand(name string) *cobra.Command {
 		Use:  "watch",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			m := getMap(cmd, name)
+			m, err := getMap(cmd, name)
+			if err != nil {
+				return err
+			}
 			watchCh := make(chan *_map.Event)
 			opts := []_map.WatchOption{}
 			replay, _ := cmd.Flags().GetBool("replay")

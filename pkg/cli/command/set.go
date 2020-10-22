@@ -64,7 +64,10 @@ func newSetCommand() *cobra.Command {
 }
 
 func getSet(cmd *cobra.Command, name string) (set.Set, error) {
-	database := getDatabase(cmd)
+	database, err := getDatabase(cmd)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	return database.GetSet(ctx, name)

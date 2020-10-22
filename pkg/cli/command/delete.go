@@ -15,7 +15,6 @@
 package command
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 )
 
@@ -40,158 +39,142 @@ func newDeleteCounterCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "counter <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runDeleteCounterCommand,
+		RunE: runDeleteCounterCommand,
 	}
 }
 
-func runDeleteCounterCommand(cmd *cobra.Command, args []string) {
-	counter := getCounter(cmd, args[0])
+func runDeleteCounterCommand(cmd *cobra.Command, args []string) error {
+	counter, err := getCounter(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	err := counter.Delete(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput(fmt.Sprintf("Deleted counter %s", counter.Name().String()))
-	}
+	return counter.Delete(ctx)
 }
 
 func newDeleteElectionCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "election <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runDeleteElectionCommand,
+		RunE: runDeleteElectionCommand,
 	}
 }
 
-func runDeleteElectionCommand(cmd *cobra.Command, args []string) {
-	election := getElection(cmd, args[0], "")
+func runDeleteElectionCommand(cmd *cobra.Command, args []string) error {
+	election, err := getElection(cmd, args[0], "")
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	err := election.Delete(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput(fmt.Sprintf("Deleted election %s", election.Name().String()))
-	}
+	return election.Delete(ctx)
 }
 
 func newDeleteListCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "list <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runDeleteListCommand,
+		RunE: runDeleteListCommand,
 	}
 }
 
-func runDeleteListCommand(cmd *cobra.Command, args []string) {
-	list := getList(cmd, args[0])
+func runDeleteListCommand(cmd *cobra.Command, args []string) error {
+	list, err := getList(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	err := list.Delete(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput(fmt.Sprintf("Deleted list %s", list.Name().String()))
-	}
+	return list.Delete(ctx)
 }
 
 func newDeleteLockCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "lock <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runDeleteLockCommand,
+		RunE: runDeleteLockCommand,
 	}
 }
 
-func runDeleteLockCommand(cmd *cobra.Command, args []string) {
-	lock := getLock(cmd, args[0])
+func runDeleteLockCommand(cmd *cobra.Command, args []string) error {
+	lock, err := getLock(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	err := lock.Delete(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput(fmt.Sprintf("Deleted lock %s", lock.Name().String()))
-	}
+	return lock.Delete(ctx)
 }
 
 func newDeleteLogCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "log <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runDeleteLogCommand,
+		RunE: runDeleteLogCommand,
 	}
 }
 
-func runDeleteLogCommand(cmd *cobra.Command, args []string) {
-	log := getLog(cmd, args[0])
+func runDeleteLogCommand(cmd *cobra.Command, args []string) error {
+	log, err := getLog(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	err := log.Delete(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput(fmt.Sprintf("Deleted log %s", log.Name().String()))
-	}
+	return log.Delete(ctx)
 }
 
 func newDeleteMapCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "map <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runDeleteMapCommand,
+		RunE: runDeleteMapCommand,
 	}
 }
 
-func runDeleteMapCommand(cmd *cobra.Command, args []string) {
-	_map := getMap(cmd, args[0])
+func runDeleteMapCommand(cmd *cobra.Command, args []string) error {
+	_map, err := getMap(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	err := _map.Delete(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput(fmt.Sprintf("Deleted map %s", _map.Name().String()))
-	}
+	return _map.Delete(ctx)
 }
 
 func newDeleteSetCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "set <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runDeleteSetCommand,
+		RunE: runDeleteSetCommand,
 	}
 }
 
-func runDeleteSetCommand(cmd *cobra.Command, args []string) {
-	set := getSet(cmd, args[0])
+func runDeleteSetCommand(cmd *cobra.Command, args []string) error {
+	set, err := getSet(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	err := set.Delete(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput(fmt.Sprintf("Deleted set %s", set.Name().String()))
-	}
+	return set.Delete(ctx)
 }
 
 func newDeleteValueCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "value <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runDeleteValueCommand,
+		RunE: runDeleteValueCommand,
 	}
 }
 
-func runDeleteValueCommand(cmd *cobra.Command, args []string) {
-	value := getMap(cmd, args[0])
+func runDeleteValueCommand(cmd *cobra.Command, args []string) error {
+	value, err := getMap(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	err := value.Delete(ctx)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		ExitWithOutput(fmt.Sprintf("Deleted value %s", value.Name().String()))
-	}
+	return value.Delete(ctx)
 }

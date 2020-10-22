@@ -51,13 +51,12 @@ func newConfigGetCommand() *cobra.Command {
 		Use:       "get <key>",
 		Args:      cobra.ExactArgs(1),
 		ValidArgs: validArgs,
-		Run:       runConfigGetCommand,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			value := viper.Get(args[0])
+			cmd.Println(value)
+			return nil
+		},
 	}
-}
-
-func runConfigGetCommand(cmd *cobra.Command, args []string) {
-	value := viper.Get(args[0])
-	ExitWithOutput("%v", value)
 }
 
 func newConfigSetCommand() *cobra.Command {
@@ -71,17 +70,15 @@ func newConfigSetCommand() *cobra.Command {
 		Use:       "set <key> <value>",
 		Args:      cobra.ExactArgs(2),
 		ValidArgs: validArgs,
-		Run:       runConfigSetCommand,
-	}
-}
-
-func runConfigSetCommand(cmd *cobra.Command, args []string) {
-	viper.Set(args[0], args[1])
-	if err := viper.WriteConfig(); err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		value := viper.Get(args[0])
-		ExitWithOutput("%v", value)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			viper.Set(args[0], args[1])
+			if err := viper.WriteConfig(); err != nil {
+				return err
+			}
+			value := viper.Get(args[0])
+			cmd.Println(value)
+			return nil
+		},
 	}
 }
 
@@ -96,17 +93,15 @@ func newConfigDeleteCommand() *cobra.Command {
 		Use:       "delete <key>",
 		Args:      cobra.ExactArgs(1),
 		ValidArgs: validArgs,
-		Run:       runConfigDeleteCommand,
-	}
-}
-
-func runConfigDeleteCommand(cmd *cobra.Command, args []string) {
-	viper.Set(args[0], nil)
-	if err := viper.WriteConfig(); err != nil {
-		ExitWithError(ExitError, err)
-	} else {
-		value := viper.Get(args[0])
-		ExitWithOutput("%v", value)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			viper.Set(args[0], nil)
+			if err := viper.WriteConfig(); err != nil {
+				return err
+			}
+			value := viper.Get(args[0])
+			cmd.Println(value)
+			return nil
+		},
 	}
 }
 
@@ -135,7 +130,7 @@ func initConfig() {
 
 	home, err := homedir.Dir()
 	if err != nil {
-		ExitWithError(ExitError, err)
+		panic(err)
 	}
 
 	viper.SetConfigName("config")

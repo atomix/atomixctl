@@ -15,7 +15,6 @@
 package command
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
 )
 
@@ -40,126 +39,158 @@ func newCreateCounterCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "counter <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runCreateCounterCommand,
+		RunE: runCreateCounterCommand,
 	}
 }
 
-func runCreateCounterCommand(cmd *cobra.Command, args []string) {
-	counter := getCounter(cmd, args[0])
+func runCreateCounterCommand(cmd *cobra.Command, args []string) error {
+	counter, err := getCounter(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	counter.Close(ctx)
-	ExitWithOutput(fmt.Sprintf("Created counter %s", counter.Name().String()))
+	cmd.Println(counter.Name().String())
+	return nil
 }
 
 func newCreateElectionCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "election <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runCreateElectionCommand,
+		RunE: runCreateElectionCommand,
 	}
 }
 
-func runCreateElectionCommand(cmd *cobra.Command, args []string) {
-	election := getElection(cmd, args[0], "")
+func runCreateElectionCommand(cmd *cobra.Command, args []string) error {
+	election, err := getElection(cmd, args[0], "")
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	election.Close(ctx)
-	ExitWithOutput(fmt.Sprintf("Created election %s", election.Name().String()))
+	cmd.Println(election.Name().String())
+	return nil
 }
 
 func newCreateListCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "list <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runCreateListCommand,
+		RunE: runCreateListCommand,
 	}
 }
 
-func runCreateListCommand(cmd *cobra.Command, args []string) {
-	list := getList(cmd, args[0])
+func runCreateListCommand(cmd *cobra.Command, args []string) error {
+	list, err := getList(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	list.Close(ctx)
-	ExitWithOutput(fmt.Sprintf("Created list %s", list.Name().String()))
+	cmd.Println(list.Name().String())
+	return nil
 }
 
 func newCreateLockCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "lock <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runCreateLockCommand,
+		RunE: runCreateLockCommand,
 	}
 }
 
-func runCreateLockCommand(cmd *cobra.Command, args []string) {
-	lock := getLock(cmd, args[0])
+func runCreateLockCommand(cmd *cobra.Command, args []string) error {
+	lock, err := getLock(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	lock.Close(ctx)
-	ExitWithOutput(fmt.Sprintf("Created lock %s", lock.Name().String()))
+	cmd.Println(lock.Name().String())
+	return nil
 }
 
 func newCreateLogCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "log <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runCreateLogCommand,
+		RunE: runCreateLogCommand,
 	}
 }
 
-func runCreateLogCommand(cmd *cobra.Command, args []string) {
-	log := getLog(cmd, args[0])
+func runCreateLogCommand(cmd *cobra.Command, args []string) error {
+	log, err := getLog(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	log.Close(ctx)
-	ExitWithOutput(fmt.Sprintf("Created log %s", log.Name().String()))
+	cmd.Println(log.Name().String())
+	return nil
 }
 
 func newCreateMapCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "map <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runCreateMapCommand,
+		RunE: runCreateMapCommand,
 	}
 }
 
-func runCreateMapCommand(cmd *cobra.Command, args []string) {
-	_map := getMap(cmd, args[0])
+func runCreateMapCommand(cmd *cobra.Command, args []string) error {
+	_map, err := getMap(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	_map.Close(ctx)
-	ExitWithOutput(fmt.Sprintf("Created map %s", _map.Name().String()))
+	cmd.Println(_map.Name().String())
+	return nil
 }
 
 func newCreateSetCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "set <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runCreateSetCommand,
+		RunE: runCreateSetCommand,
 	}
 }
 
-func runCreateSetCommand(cmd *cobra.Command, args []string) {
-	set := getSet(cmd, args[0])
+func runCreateSetCommand(cmd *cobra.Command, args []string) error {
+	set, err := getSet(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	set.Close(ctx)
-	ExitWithOutput(fmt.Sprintf("Created set %s", set.Name().String()))
+	cmd.Println(set.Name().String())
+	return nil
 }
 
 func newCreateValueCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:  "value <name>",
 		Args: cobra.ExactArgs(1),
-		Run:  runCreateValueCommand,
+		RunE: runCreateValueCommand,
 	}
 }
 
-func runCreateValueCommand(cmd *cobra.Command, args []string) {
-	value := getValue(cmd, args[0])
+func runCreateValueCommand(cmd *cobra.Command, args []string) error {
+	value, err := getValue(cmd, args[0])
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	value.Close(ctx)
-	ExitWithOutput(fmt.Sprintf("Created value %s", value.Name().String()))
+	cmd.Println(value.Name().String())
+	return nil
 }

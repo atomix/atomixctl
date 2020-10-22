@@ -56,15 +56,14 @@ func newCounterCommand() *cobra.Command {
 	}
 }
 
-func getCounter(cmd *cobra.Command, name string) counter.Counter {
-	database := getDatabase(cmd)
+func getCounter(cmd *cobra.Command, name string) (counter.Counter, error) {
+	database, err := getDatabase(cmd)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	m, err := database.GetCounter(ctx, name)
-	if err != nil {
-		ExitWithError(ExitError, err)
-	}
-	return m
+	return database.GetCounter(ctx, name)
 }
 
 func newCounterGetCommand(name string) *cobra.Command {
@@ -72,7 +71,10 @@ func newCounterGetCommand(name string) *cobra.Command {
 		Use:  "get",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			counter := getCounter(cmd, name)
+			counter, err := getCounter(cmd, name)
+			if err != nil {
+				return err
+			}
 			ctx, cancel := getTimeoutContext(cmd)
 			defer cancel()
 			value, err := counter.Get(ctx)
@@ -90,7 +92,10 @@ func newCounterSetCommand(name string) *cobra.Command {
 		Use:  "set <value>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			counter := getCounter(cmd, name)
+			counter, err := getCounter(cmd, name)
+			if err != nil {
+				return err
+			}
 			value, err := strconv.Atoi(args[0])
 			if err != nil {
 				return err
@@ -112,7 +117,10 @@ func newCounterIncrementCommand(name string) *cobra.Command {
 		Use:  "increment [delta]",
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			counter := getCounter(cmd, name)
+			counter, err := getCounter(cmd, name)
+			if err != nil {
+				return err
+			}
 			var delta int64
 			if len(args) > 0 {
 				value, err := strconv.Atoi(args[0])
@@ -138,7 +146,10 @@ func newCounterDecrementCommand(name string) *cobra.Command {
 		Use:  "decrement [delta]",
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			counter := getCounter(cmd, name)
+			counter, err := getCounter(cmd, name)
+			if err != nil {
+				return err
+			}
 			var delta int64
 			if len(args) > 0 {
 				value, err := strconv.Atoi(args[0])

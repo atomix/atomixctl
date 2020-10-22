@@ -58,7 +58,10 @@ func newElectionCommand() *cobra.Command {
 }
 
 func getElection(cmd *cobra.Command, name string, id string) (election.Election, error) {
-	database := getDatabase(cmd)
+	database, err := getDatabase(cmd)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	return database.GetElection(ctx, name, election.WithID(id))
@@ -134,34 +137,33 @@ func newElectionEnterCommand(name string) *cobra.Command {
 			// Create a watch on the election
 			err = election.Watch(context.Background(), watchCh)
 			if err != nil {
-				ExitWithError(ExitError, err)
+				return err
 			}
 
 			// Enter the election
 			_, err = election.Enter(ctx)
 			cancel()
 			if err != nil {
-				ExitWithError(ExitError, err)
+				return err
 			}
 
 			// Once we've successfully entered the election, wait for watch events
-			Output("Entered election")
 			signalCh := make(chan os.Signal, 2)
 			signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
 			for {
 				select {
 				case event := <-watchCh:
-					Output("Election state changed; Term: %d, Leader: %s, Candidates %v", event.Term.ID, event.Term.Leader, event.Term.Candidates)
+					bytes, err := yaml.Marshal(event)
+					if err != nil {
+						cmd.Println(err)
+					} else {
+						cmd.Println(string(bytes))
+					}
 				case <-signalCh:
-					Output("Leaving election")
 					ctx, cancel := getTimeoutContext(cmd)
 					_, err = election.Leave(ctx)
 					cancel()
-					if err != nil {
-						ExitWithError(ExitError, err)
-					} else {
-						ExitWithSuccess()
-					}
+					return err
 				}
 			}
 		},
@@ -180,7 +182,7 @@ func newElectionWatchCommand(name string) *cobra.Command {
 
 			watchCh := make(chan *election.Event)
 			if err := e.Watch(context.Background(), watchCh); err != nil {
-				ExitWithError(ExitError, err)
+				return err
 			}
 
 			signalCh := make(chan os.Signal, 2)
@@ -188,9 +190,14 @@ func newElectionWatchCommand(name string) *cobra.Command {
 			for {
 				select {
 				case event := <-watchCh:
-					Output("Term: %d, Leader: %s, Candidates: %v", event.Term.ID, event.Term.Leader, event.Term.Candidates)
+					bytes, err := yaml.Marshal(event)
+					if err != nil {
+						cmd.Println(err)
+					} else {
+						cmd.Println(string(bytes))
+					}
 				case <-signalCh:
-					ExitWithSuccess()
+					return nil
 				}
 			}
 		},

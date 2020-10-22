@@ -209,21 +209,15 @@ func newCompletionCommand() *cobra.Command {
 		Use:       "completion <shell>",
 		Args:      cobra.ExactArgs(1),
 		ValidArgs: []string{"bash", "zsh"},
-		Run:       runCompletionCommand,
-	}
-}
-
-func runCompletionCommand(cmd *cobra.Command, args []string) {
-	if args[0] == "bash" {
-		if err := runCompletionBash(os.Stdout, cmd.Parent()); err != nil {
-			ExitWithError(ExitError, err)
-		}
-	} else if args[0] == "zsh" {
-		if err := runCompletionZsh(os.Stdout, cmd.Parent()); err != nil {
-			ExitWithError(ExitError, err)
-		}
-	} else {
-		ExitWithError(ExitError, errors.New("unsupported shell type "+args[0]))
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if args[0] == "bash" {
+				return runCompletionBash(os.Stdout, cmd.Parent())
+			} else if args[0] == "zsh" {
+				return runCompletionZsh(os.Stdout, cmd.Parent())
+			} else {
+				return errors.New("unsupported shell type " + args[0])
+			}
+		},
 	}
 }
 

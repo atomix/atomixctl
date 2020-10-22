@@ -19,7 +19,7 @@ import (
 	"github.com/atomix/go-client/pkg/client/primitive"
 	"github.com/iancoleman/strcase"
 	"github.com/spf13/cobra"
-	"os"
+	"io"
 	"text/tabwriter"
 )
 
@@ -193,12 +193,14 @@ func runGetValuesCommand(cmd *cobra.Command, _ []string) {
 	getPrimitives(cmd, "value")
 }
 
-func getPrimitives(cmd *cobra.Command, typeName string) {
-	database := getDatabase(cmd)
+func getPrimitives(cmd *cobra.Command, typeName string) error {
+	database, err := getDatabase(cmd)
+	if err != nil {
+		return err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	var primitives []primitive.Metadata
-	var err error
 	if typeName == "" {
 		primitives, err = database.GetPrimitives(ctx)
 	} else {
@@ -206,21 +208,21 @@ func getPrimitives(cmd *cobra.Command, typeName string) {
 	}
 
 	if err != nil {
-		ExitWithError(ExitError, err)
+		return err
 	}
 
 	noHeaders, _ := cmd.Flags().GetBool("no-headers")
-	printPrimitives(primitives, !noHeaders)
+	return printPrimitives(primitives, !noHeaders, cmd.OutOrStdout())
 }
 
-func printPrimitives(primitives []primitive.Metadata, includeHeaders bool) {
+func printPrimitives(primitives []primitive.Metadata, includeHeaders bool, out io.Writer) error {
 	writer := new(tabwriter.Writer)
-	writer.Init(os.Stdout, 0, 0, 3, ' ', tabwriter.FilterHTML)
+	writer.Init(out, 0, 0, 3, ' ', tabwriter.FilterHTML)
 	if includeHeaders {
 		fmt.Fprintln(writer, "NAME\tSCOPE\tTYPE")
 	}
 	for _, primitive := range primitives {
 		fmt.Fprintln(writer, fmt.Sprintf("%s\t%s\t%s", primitive.Name.Name, primitive.Name.Scope, strcase.ToKebab(string(primitive.Type))))
 	}
-	writer.Flush()
+	return writer.Flush()
 }

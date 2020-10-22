@@ -69,7 +69,10 @@ func newListCommand() *cobra.Command {
 }
 
 func getList(cmd *cobra.Command, name string) (list.List, error) {
-	database := getDatabase(cmd)
+	database, err := getDatabase(cmd)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	return database.GetList(ctx, name)
@@ -87,7 +90,7 @@ func newListGetCommand(name string) *cobra.Command {
 			indexStr := args[0]
 			index, err := strconv.Atoi(indexStr)
 			if err != nil {
-				ExitWithError(ExitBadArgs, err)
+				return err
 			}
 			ctx, cancel := getTimeoutContext(cmd)
 			defer cancel()
@@ -129,7 +132,7 @@ func newListInsertCommand(name string) *cobra.Command {
 			indexStr := args[0]
 			index, err := strconv.Atoi(indexStr)
 			if err != nil {
-				ExitWithError(ExitBadArgs, err)
+				return err
 			}
 			value := args[1]
 			ctx, cancel := getTimeoutContext(cmd)
@@ -151,7 +154,7 @@ func newListRemoveCommand(name string) *cobra.Command {
 			indexStr := args[0]
 			index, err := strconv.Atoi(indexStr)
 			if err != nil {
-				ExitWithError(ExitBadArgs, err)
+				return err
 			}
 			ctx, cancel := getTimeoutContext(cmd)
 			defer cancel()

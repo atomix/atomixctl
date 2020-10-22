@@ -59,24 +59,19 @@ func getClientScope(cmd *cobra.Command) string {
 	return app
 }
 
-func getClient(cmd *cobra.Command) *client.Client {
-	client, err := client.New(
+func getClient(cmd *cobra.Command) (*client.Client, error) {
+	return client.New(
 		getClientController(),
 		client.WithNamespace(getClientNamespace()),
 		client.WithScope(getClientScope(cmd)))
-	if err != nil {
-		ExitWithError(ExitBadConnection, err)
-	}
-	return client
 }
 
-func getDatabase(cmd *cobra.Command) *client.Database {
-	client := getClient(cmd)
+func getDatabase(cmd *cobra.Command) (*client.Database, error) {
+	client, err := getClient(cmd)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
-	database, err := client.GetDatabase(ctx, getClientDatabase(cmd))
-	if err != nil {
-		ExitWithError(ExitBadConnection, err)
-	}
-	return database
+	return client.GetDatabase(ctx, getClientDatabase(cmd))
 }

@@ -54,7 +54,10 @@ func newLockCommand() *cobra.Command {
 }
 
 func getLock(cmd *cobra.Command, name string) (lock.Lock, error) {
-	database := getDatabase(cmd)
+	database, err := getDatabase(cmd)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	return database.GetLock(ctx, name)

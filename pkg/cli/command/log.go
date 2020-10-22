@@ -68,7 +68,10 @@ func newLogCommand() *cobra.Command {
 }
 
 func getLog(cmd *cobra.Command, name string) (log.Log, error) {
-	database := getDatabase(cmd)
+	database, err := getDatabase(cmd)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	return database.GetLog(ctx, name)
@@ -234,7 +237,7 @@ func newLogWatchCommand(name string) *cobra.Command {
 				opts = append(opts, log.WithReplay())
 			}
 			if err := l.Watch(context.Background(), watchCh, opts...); err != nil {
-				ExitWithError(ExitError, err)
+				return err
 			}
 
 			signalCh := make(chan os.Signal, 2)

@@ -58,7 +58,10 @@ func newValueCommand() *cobra.Command {
 }
 
 func getValue(cmd *cobra.Command, name string) (value.Value, error) {
-	database := getDatabase(cmd)
+	database, err := getDatabase(cmd)
+	if err != nil {
+		return nil, err
+	}
 	ctx, cancel := getTimeoutContext(cmd)
 	defer cancel()
 	return database.GetValue(ctx, name)
