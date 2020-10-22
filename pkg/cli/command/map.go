@@ -33,15 +33,14 @@ func newMapCommand() *cobra.Command {
 		DisableFlagParsing: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// If only the name was specified, open an interactive shell
-			if len(args) == 1 {
-				return runShell(fmt.Sprintf("map:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, os.Args)
-			}
-
 			name := args[0]
-			op := args[1]
+			if len(args) == 1 {
+				return runShell(fmt.Sprintf("map:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "map", name))
+			}
 
 			// Get the command for the specified operation
 			var subCmd *cobra.Command
+			op := args[1]
 			switch op {
 			case "get":
 				subCmd = newMapGetCommand(name)
@@ -60,7 +59,7 @@ func newMapCommand() *cobra.Command {
 			}
 
 			// Set the arguments after the name and execute the command
-			subCmd.SetArgs(args[1:])
+			subCmd.SetArgs(args[2:])
 			return subCmd.Execute()
 		},
 	}
