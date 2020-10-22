@@ -26,7 +26,7 @@ import (
 )
 
 func newMapCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                "map <name> [...]",
 		Short:              "Manage a distributed map",
 		Args:               cobra.MinimumNArgs(1),
@@ -63,6 +63,8 @@ func newMapCommand() *cobra.Command {
 			return subCmd.Execute()
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func getMap(cmd *cobra.Command, name string) (_map.Map, error) {
@@ -76,7 +78,7 @@ func getMap(cmd *cobra.Command, name string) (_map.Map, error) {
 }
 
 func newMapGetCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "get <key>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -96,6 +98,8 @@ func newMapGetCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newMapPutCommand(name string) *cobra.Command {
@@ -131,6 +135,7 @@ func newMapPutCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().Int64("version", 0, "the entry version")
+	addClientFlags(cmd)
 	return cmd
 }
 
@@ -166,11 +171,12 @@ func newMapRemoveCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().Int64("version", 0, "the entry version")
+	addClientFlags(cmd)
 	return cmd
 }
 
 func newMapKeysCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "keys",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -193,10 +199,12 @@ func newMapKeysCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newMapSizeCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "size",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -214,10 +222,12 @@ func newMapSizeCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newMapClearCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "clear",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -230,6 +240,8 @@ func newMapClearCommand(name string) *cobra.Command {
 			return _map.Clear(ctx)
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newMapWatchCommand(name string) *cobra.Command {
@@ -269,5 +281,6 @@ func newMapWatchCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current map entries at start")
+	addClientFlags(cmd)
 	return cmd
 }

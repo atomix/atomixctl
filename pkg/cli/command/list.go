@@ -27,7 +27,7 @@ import (
 )
 
 func newListCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                "list <name> [...]",
 		Short:              "Manage the state of a distributed list",
 		Args:               cobra.MinimumNArgs(1),
@@ -66,6 +66,8 @@ func newListCommand() *cobra.Command {
 			return subCmd.Execute()
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func getList(cmd *cobra.Command, name string) (list.List, error) {
@@ -79,7 +81,7 @@ func getList(cmd *cobra.Command, name string) (list.List, error) {
 }
 
 func newListGetCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "get <index>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -101,10 +103,12 @@ func newListGetCommand(name string) *cobra.Command {
 			return err
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newListAppendCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "append <value>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -118,10 +122,12 @@ func newListAppendCommand(name string) *cobra.Command {
 			return l.Append(ctx, []byte(value))
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newListInsertCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "insert <index> <value>",
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -140,6 +146,8 @@ func newListInsertCommand(name string) *cobra.Command {
 			return l.Insert(ctx, int(index), []byte(value))
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newListRemoveCommand(name string) *cobra.Command {
@@ -170,7 +178,7 @@ func newListRemoveCommand(name string) *cobra.Command {
 }
 
 func newListItemsCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "items",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -189,10 +197,12 @@ func newListItemsCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newListSizeCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "size",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -210,10 +220,12 @@ func newListSizeCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newListClearCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "clear",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -226,6 +238,8 @@ func newListClearCommand(name string) *cobra.Command {
 			return list.Clear(ctx)
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newListWatchCommand(name string) *cobra.Command {
@@ -265,5 +279,6 @@ func newListWatchCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current list values at start")
+	addClientFlags(cmd)
 	return cmd
 }

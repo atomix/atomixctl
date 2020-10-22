@@ -26,7 +26,7 @@ import (
 )
 
 func newElectionCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                "election <name> [...]",
 		Short:              "Manage the state of a distributed leader election",
 		Args:               cobra.MinimumNArgs(1),
@@ -55,6 +55,8 @@ func newElectionCommand() *cobra.Command {
 			return subCmd.Execute()
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func getElection(cmd *cobra.Command, name string, id string) (election.Election, error) {
@@ -77,7 +79,7 @@ func newElectionGetCommand(name string) *cobra.Command {
 }
 
 func newElectionGetLeaderCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use: "leader [options]",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			election, err := getElection(cmd, name, "")
@@ -95,10 +97,12 @@ func newElectionGetLeaderCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newElectionGetTermCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use: "term [options]",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			election, err := getElection(cmd, name, "")
@@ -120,10 +124,12 @@ func newElectionGetTermCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newElectionEnterCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "enter <id>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -168,10 +174,12 @@ func newElectionEnterCommand(name string) *cobra.Command {
 			}
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newElectionWatchCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "watch",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -202,4 +210,6 @@ func newElectionWatchCommand(name string) *cobra.Command {
 			}
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }

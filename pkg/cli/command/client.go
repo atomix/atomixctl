@@ -19,6 +19,9 @@ import (
 	"github.com/atomix/go-client/pkg/client"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -37,8 +40,19 @@ func addClientFlags(cmd *cobra.Command) {
 }
 
 func getTimeoutContext(cmd *cobra.Command) (context.Context, context.CancelFunc) {
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 	timeout, _ := cmd.Flags().GetDuration("timeout")
-	return context.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	go func() {
+		select {
+		case <-ctx.Done():
+			signal.Stop(sigCh)
+		case <-sigCh:
+			cancel()
+		}
+	}()
+	return ctx, cancel
 }
 
 func getClientController() string {
@@ -60,7 +74,10 @@ func getClientScope(cmd *cobra.Command) string {
 }
 
 func getClient(cmd *cobra.Command) (*client.Client, error) {
-	return client.New(
+	ctx, cancel := getTimeoutContext(cmd)
+	defer cancel()
+	return client.NewWithContext(
+		ctx,
 		getClientController(),
 		client.WithNamespace(getClientNamespace()),
 		client.WithScope(getClientScope(cmd)))

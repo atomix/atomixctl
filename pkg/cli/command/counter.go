@@ -23,7 +23,7 @@ import (
 )
 
 func newCounterCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                "counter <name> [...]",
 		Short:              "Manage the state of a distributed counter",
 		Args:               cobra.MinimumNArgs(1),
@@ -54,6 +54,8 @@ func newCounterCommand() *cobra.Command {
 			return subCmd.Execute()
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func getCounter(cmd *cobra.Command, name string) (counter.Counter, error) {
@@ -67,7 +69,7 @@ func getCounter(cmd *cobra.Command, name string) (counter.Counter, error) {
 }
 
 func newCounterGetCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "get",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -85,10 +87,12 @@ func newCounterGetCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newCounterSetCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "set <value>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -110,10 +114,12 @@ func newCounterSetCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newCounterIncrementCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "increment [delta]",
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -139,10 +145,12 @@ func newCounterIncrementCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newCounterDecrementCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "decrement [delta]",
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -168,4 +176,6 @@ func newCounterDecrementCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }

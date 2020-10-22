@@ -26,7 +26,7 @@ import (
 )
 
 func newSetCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                "set <name> [...]",
 		Short:              "Manage the state of a distributed set",
 		Args:               cobra.MinimumNArgs(1),
@@ -61,6 +61,8 @@ func newSetCommand() *cobra.Command {
 			return subCmd.Execute()
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func getSet(cmd *cobra.Command, name string) (set.Set, error) {
@@ -74,7 +76,7 @@ func getSet(cmd *cobra.Command, name string) (set.Set, error) {
 }
 
 func newSetAddCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "add <value>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -93,10 +95,12 @@ func newSetAddCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newSetContainsCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "contains <value>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -115,10 +119,12 @@ func newSetContainsCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newSetRemoveCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "remove <value>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -137,10 +143,12 @@ func newSetRemoveCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newSetSizeCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "size",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -158,10 +166,12 @@ func newSetSizeCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newSetClearCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "clear",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -174,6 +184,8 @@ func newSetClearCommand(name string) *cobra.Command {
 			return set.Clear(ctx)
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newSetWatchCommand(name string) *cobra.Command {
@@ -213,5 +225,6 @@ func newSetWatchCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current set values at start")
+	addClientFlags(cmd)
 	return cmd
 }

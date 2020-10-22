@@ -26,7 +26,7 @@ import (
 )
 
 func newValueCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                "value <name> [...]",
 		Short:              "Manage the state of a distributed value",
 		Args:               cobra.MinimumNArgs(1),
@@ -55,6 +55,8 @@ func newValueCommand() *cobra.Command {
 			return subCmd.Execute()
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func getValue(cmd *cobra.Command, name string) (value.Value, error) {
@@ -95,11 +97,12 @@ func newValueSetCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().Uint64("version", 0, "the value version to update (for optimistic locking)")
+	addClientFlags(cmd)
 	return cmd
 }
 
 func newValueGetCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "get",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -124,10 +127,12 @@ func newValueGetCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newValueWatchCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "watch",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -158,4 +163,6 @@ func newValueWatchCommand(name string) *cobra.Command {
 			}
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }

@@ -24,7 +24,7 @@ import (
 )
 
 func newLockCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                "lock <name> [...]",
 		Short:              "Manage the state of a distributed lock",
 		Args:               cobra.MinimumNArgs(1),
@@ -51,6 +51,8 @@ func newLockCommand() *cobra.Command {
 			return subCmd.Execute()
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func getLock(cmd *cobra.Command, name string) (lock.Lock, error) {
@@ -64,7 +66,7 @@ func getLock(cmd *cobra.Command, name string) (lock.Lock, error) {
 }
 
 func newLockLockCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "lock",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -91,6 +93,8 @@ func newLockLockCommand(name string) *cobra.Command {
 			return err
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newLockGetCommand(name string) *cobra.Command {
@@ -125,5 +129,6 @@ func newLockGetCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().Uint64P("version", "v", 0, "the lock version")
+	addClientFlags(cmd)
 	return cmd
 }

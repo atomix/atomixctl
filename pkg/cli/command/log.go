@@ -28,7 +28,7 @@ import (
 )
 
 func newLogCommand() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                "log <name> [...]",
 		Short:              "Manage the state of a distributed log",
 		Args:               cobra.MinimumNArgs(1),
@@ -65,6 +65,8 @@ func newLogCommand() *cobra.Command {
 			return subCmd.Execute()
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func getLog(cmd *cobra.Command, name string) (log.Log, error) {
@@ -78,7 +80,7 @@ func getLog(cmd *cobra.Command, name string) (log.Log, error) {
 }
 
 func newLogGetCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "get <index>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -108,10 +110,12 @@ func newLogGetCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newLogAppendCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "append <value>",
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -136,6 +140,8 @@ func newLogAppendCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newLogRemoveCommand(name string) *cobra.Command {
@@ -170,21 +176,24 @@ func newLogRemoveCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().Int64P("version", "v", 0, "the entry version")
+	addClientFlags(cmd)
 	return cmd
 }
 
 func newLogEntriesCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "entries",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return errors.New("not implemented")
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newLogSizeCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "size",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -203,10 +212,12 @@ func newLogSizeCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newLogClearCommand(name string) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:  "clear",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -219,6 +230,8 @@ func newLogClearCommand(name string) *cobra.Command {
 			return log.Clear(ctx)
 		},
 	}
+	addClientFlags(cmd)
+	return cmd
 }
 
 func newLogWatchCommand(name string) *cobra.Command {
@@ -258,5 +271,6 @@ func newLogWatchCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current log entries at start")
+	addClientFlags(cmd)
 	return cmd
 }

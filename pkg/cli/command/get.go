@@ -33,5 +33,6 @@ func newGetCommand() *cobra.Command {
 	cmd.AddCommand(newGetMapsCommand())
 	cmd.AddCommand(newGetSetsCommand())
 	cmd.AddCommand(newGetValuesCommand())
+	addClientFlags(cmd)
 	return cmd
 }

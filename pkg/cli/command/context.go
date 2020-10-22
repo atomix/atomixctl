@@ -22,6 +22,7 @@ import (
 
 // commandContext is an Atomix command context
 type commandContext struct {
+	isRoot   bool
 	isShell  bool
 	shellCmd *cobra.Command
 	shell    *ishell.Shell
@@ -32,7 +33,9 @@ var manager *contextManager
 
 func init() {
 	manager = &contextManager{
-		context: &commandContext{},
+		context: &commandContext{
+			isRoot: true,
+		},
 	}
 }
 
