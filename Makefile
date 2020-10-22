@@ -14,5 +14,5 @@ deps:
 generate-docs:
 	go run github.com/atomix/cli/cmd/atomix-generate-docs
 
-images: build
+image: build
 	docker build . -f build/Dockerfile -t atomix/cli:latest
