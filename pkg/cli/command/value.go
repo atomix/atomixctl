@@ -46,13 +46,13 @@ func newValueCommand() *cobra.Command {
 			case "watch":
 				subCmd = newValueWatchCommand(name)
 			}
+			addClientFlags(subCmd)
 
 			// Set the arguments after the name and execute the command
 			subCmd.SetArgs(args[2:])
 			return subCmd.Execute()
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -94,7 +94,6 @@ func newValueSetCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().Uint64("version", 0, "the value version to update (for optimistic locking)")
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -124,7 +123,6 @@ func newValueGetCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -156,6 +154,5 @@ func newValueWatchCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }

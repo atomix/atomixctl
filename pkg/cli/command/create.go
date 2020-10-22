@@ -23,7 +23,6 @@ func newCreateCommand() *cobra.Command {
 		Use:   "create {counter,election,list,lock,map,set,value}",
 		Short: "Create a distributed primitive",
 	}
-	addClientFlags(cmd)
 	cmd.AddCommand(newCreateCounterCommand())
 	cmd.AddCommand(newCreateElectionCommand())
 	cmd.AddCommand(newCreateListCommand())

@@ -55,13 +55,13 @@ func newSetCommand() *cobra.Command {
 			case "watch":
 				subCmd = newSetWatchCommand(name)
 			}
+			addClientFlags(subCmd)
 
 			// Set the arguments after the name and execute the command
 			subCmd.SetArgs(args[2:])
 			return subCmd.Execute()
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -95,7 +95,6 @@ func newSetAddCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -119,7 +118,6 @@ func newSetContainsCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -143,7 +141,6 @@ func newSetRemoveCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -166,7 +163,6 @@ func newSetSizeCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -204,7 +200,6 @@ func newSetElementsCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -222,7 +217,6 @@ func newSetClearCommand(name string) *cobra.Command {
 			return set.Clear(ctx)
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -261,6 +255,5 @@ func newSetWatchCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current set values at start")
-	addClientFlags(cmd)
 	return cmd
 }

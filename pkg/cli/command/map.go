@@ -57,13 +57,13 @@ func newMapCommand() *cobra.Command {
 			case "watch":
 				subCmd = newMapWatchCommand(name)
 			}
+			addClientFlags(subCmd)
 
 			// Set the arguments after the name and execute the command
 			subCmd.SetArgs(args[2:])
 			return subCmd.Execute()
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -98,7 +98,6 @@ func newMapGetCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -135,7 +134,6 @@ func newMapPutCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().Int64("version", 0, "the entry version")
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -171,7 +169,6 @@ func newMapRemoveCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().Int64("version", 0, "the entry version")
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -203,7 +200,6 @@ func newMapKeysCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -227,7 +223,6 @@ func newMapSizeCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -245,7 +240,6 @@ func newMapClearCommand(name string) *cobra.Command {
 			return _map.Clear(ctx)
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -293,7 +287,6 @@ func newMapEntriesCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -332,6 +325,5 @@ func newMapWatchCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current map entries at start")
-	addClientFlags(cmd)
 	return cmd
 }

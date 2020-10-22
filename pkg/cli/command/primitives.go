@@ -29,7 +29,6 @@ func newGetPrimitivesCommand() *cobra.Command {
 		Short: "List primitives in a database",
 		Run:   runGetPrimitivesCommand,
 	}
-	addClientFlags(cmd)
 	cmd.Flags().StringP("type", "t", "", "the type of primitives to list")
 	cmd.Flags().Lookup("type").Annotations = map[string][]string{
 		cobra.BashCompCustom: {"__atomix_get_primitive_types"},
@@ -49,7 +48,6 @@ func newGetCountersCommand() *cobra.Command {
 		Short: "List counters in a database",
 		Run:   runGetCountersCommand,
 	}
-	addClientFlags(cmd)
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
 }
@@ -64,7 +62,6 @@ func newGetElectionsCommand() *cobra.Command {
 		Short: "List elections in a database",
 		Run:   runGetElectionsCommand,
 	}
-	addClientFlags(cmd)
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
 }
@@ -79,7 +76,6 @@ func newGetIndexedMapsCommand() *cobra.Command {
 		Short: "List indexed maps in a database",
 		Run:   runGetIndexedMapsCommand,
 	}
-	addClientFlags(cmd)
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
 }
@@ -94,7 +90,6 @@ func newGetLeaderLatchesCommand() *cobra.Command {
 		Short: "List leader latches in a database",
 		Run:   runGetLeaderLatchesCommand,
 	}
-	addClientFlags(cmd)
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
 }
@@ -109,7 +104,6 @@ func newGetListsCommand() *cobra.Command {
 		Short: "List lists in a database",
 		Run:   runGetListsCommand,
 	}
-	addClientFlags(cmd)
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
 }
@@ -124,7 +118,6 @@ func newGetLocksCommand() *cobra.Command {
 		Short: "List locks in a database",
 		Run:   runGetLocksCommand,
 	}
-	addClientFlags(cmd)
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
 }
@@ -139,7 +132,6 @@ func newGetLogsCommand() *cobra.Command {
 		Short: "List logs in a database",
 		Run:   runGetLogsCommand,
 	}
-	addClientFlags(cmd)
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
 }
@@ -154,7 +146,6 @@ func newGetMapsCommand() *cobra.Command {
 		Short: "List maps in a database",
 		Run:   runGetMapsCommand,
 	}
-	addClientFlags(cmd)
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
 }
@@ -169,7 +160,6 @@ func newGetSetsCommand() *cobra.Command {
 		Short: "List sets in a database",
 		Run:   runGetSetsCommand,
 	}
-	addClientFlags(cmd)
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
 }
@@ -184,7 +174,6 @@ func newGetValuesCommand() *cobra.Command {
 		Short: "List values in a database",
 		Run:   runGetValuesCommand,
 	}
-	addClientFlags(cmd)
 	cmd.Flags().Bool("no-headers", false, "exclude headers from output")
 	return cmd
 }

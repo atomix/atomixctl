@@ -48,13 +48,13 @@ func newCounterCommand() *cobra.Command {
 			case "decrement":
 				subCmd = newCounterDecrementCommand(name)
 			}
+			addClientFlags(subCmd)
 
 			// Set the arguments after the name and execute the command
 			subCmd.SetArgs(args[2:])
 			return subCmd.Execute()
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -87,7 +87,6 @@ func newCounterGetCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -114,7 +113,6 @@ func newCounterSetCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -145,7 +143,6 @@ func newCounterIncrementCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -176,6 +173,5 @@ func newCounterDecrementCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }

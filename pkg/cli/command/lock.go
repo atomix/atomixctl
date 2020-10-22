@@ -45,13 +45,13 @@ func newLockCommand() *cobra.Command {
 			case "lock":
 				subCmd = newLockLockCommand(name)
 			}
+			addClientFlags(subCmd)
 
 			// Set the arguments after the name and execute the command
 			subCmd.SetArgs(args[2:])
 			return subCmd.Execute()
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -93,7 +93,6 @@ func newLockLockCommand(name string) *cobra.Command {
 			return err
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -129,6 +128,5 @@ func newLockGetCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().Uint64P("version", "v", 0, "the lock version")
-	addClientFlags(cmd)
 	return cmd
 }

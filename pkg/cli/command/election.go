@@ -46,13 +46,13 @@ func newElectionCommand() *cobra.Command {
 			case "watch":
 				subCmd = newElectionWatchCommand(name)
 			}
+			addClientFlags(subCmd)
 
 			// Set the arguments after the name and execute the command
 			subCmd.SetArgs(args[2:])
 			return subCmd.Execute()
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -94,7 +94,6 @@ func newElectionGetLeaderCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -121,7 +120,6 @@ func newElectionGetTermCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -164,7 +162,6 @@ func newElectionEnterCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -196,6 +193,5 @@ func newElectionWatchCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }

@@ -56,13 +56,13 @@ func newLogCommand() *cobra.Command {
 			case "watch":
 				subCmd = newLogWatchCommand(name)
 			}
+			addClientFlags(subCmd)
 
 			// Set the arguments after the name and execute the command
 			subCmd.SetArgs(args[2:])
 			return subCmd.Execute()
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -107,7 +107,6 @@ func newLogGetCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -137,7 +136,6 @@ func newLogAppendCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -173,7 +171,6 @@ func newLogRemoveCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().Int64P("version", "v", 0, "the entry version")
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -221,7 +218,6 @@ func newLogEntriesCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -245,7 +241,6 @@ func newLogSizeCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -263,7 +258,6 @@ func newLogClearCommand(name string) *cobra.Command {
 			return log.Clear(ctx)
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -302,6 +296,5 @@ func newLogWatchCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current log entries at start")
-	addClientFlags(cmd)
 	return cmd
 }

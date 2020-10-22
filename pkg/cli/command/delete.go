@@ -23,7 +23,6 @@ func newDeleteCommand() *cobra.Command {
 		Use:   "delete {counter,election,list,lock,map,set,value}",
 		Short: "Delete a distributed primitive",
 	}
-	addClientFlags(cmd)
 	cmd.AddCommand(newDeleteCounterCommand())
 	cmd.AddCommand(newDeleteElectionCommand())
 	cmd.AddCommand(newDeleteListCommand())

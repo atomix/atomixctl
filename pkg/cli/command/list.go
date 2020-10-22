@@ -58,13 +58,13 @@ func newListCommand() *cobra.Command {
 			case "watch":
 				subCmd = newListWatchCommand(name)
 			}
+			addClientFlags(subCmd)
 
 			// Set the arguments after the name and execute the command
 			subCmd.SetArgs(args[2:])
 			return subCmd.Execute()
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -101,7 +101,6 @@ func newListGetCommand(name string) *cobra.Command {
 			return err
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -120,7 +119,6 @@ func newListAppendCommand(name string) *cobra.Command {
 			return l.Append(ctx, []byte(value))
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -144,7 +142,6 @@ func newListInsertCommand(name string) *cobra.Command {
 			return l.Insert(ctx, int(index), []byte(value))
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -209,7 +206,6 @@ func newListItemsCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -232,7 +228,6 @@ func newListSizeCommand(name string) *cobra.Command {
 			return nil
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -250,7 +245,6 @@ func newListClearCommand(name string) *cobra.Command {
 			return list.Clear(ctx)
 		},
 	}
-	addClientFlags(cmd)
 	return cmd
 }
 
@@ -288,6 +282,5 @@ func newListWatchCommand(name string) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolP("replay", "r", false, "replay current list values at start")
-	addClientFlags(cmd)
 	return cmd
 }
