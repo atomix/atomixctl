@@ -23,14 +23,18 @@ import (
 )
 
 func runShell(name string, stdin io.ReadCloser, stdout io.Writer, stderr io.Writer, args []string) error {
-	ctx := getContext()
+	parentCtx := getContext()
+	if parentCtx.isShell {
+		name = fmt.Sprintf("%s:%s", parentCtx.shellName, name)
+	}
+
 	historyFile, err := getConfigFile("history.log")
 	if err != nil {
 		return err
 	}
 
 	shell := ishell.NewWithConfig(&readline.Config{
-		Prompt:      fmt.Sprintf("%s>", name),
+		Prompt:      fmt.Sprintf("%s> ", name),
 		HistoryFile: historyFile,
 		Stdin:       stdin,
 		Stdout:      stdout,
@@ -49,12 +53,13 @@ func runShell(name string, stdin io.ReadCloser, stdout io.Writer, stderr io.Writ
 			context.Println(err)
 		}
 	})
-	setContextFunc(func(context *commandContext) {
-		context.isShell = true
-		context.shell = shell
+	setContextFunc(func(ctx *commandContext) {
+		ctx.isShell = true
+		ctx.shellName = name
+		ctx.shell = shell
 	})
 	shell.Interrupt(func(context *ishell.Context, count int, input string) {
-		if ctx.isShell {
+		if parentCtx.isShell {
 			context.Stop()
 		} else if count >= 2 {
 			context.Println("Interrupted")
@@ -67,6 +72,6 @@ func runShell(name string, stdin io.ReadCloser, stdout io.Writer, stderr io.Writ
 		context.Stop()
 	})
 	shell.Run()
-	setContext(ctx)
+	setContext(parentCtx)
 	return nil
 }

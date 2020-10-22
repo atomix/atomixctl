@@ -22,11 +22,12 @@ import (
 
 // commandContext is an Atomix command context
 type commandContext struct {
-	isRoot   bool
-	isShell  bool
-	shellCmd *cobra.Command
-	shell    *ishell.Shell
-	shellCtx *ishell.Context
+	isRoot    bool
+	isShell   bool
+	shellName string
+	shellCmd  *cobra.Command
+	shell     *ishell.Shell
+	shellCtx  *ishell.Context
 }
 
 var manager *contextManager
