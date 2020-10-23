@@ -9,7 +9,7 @@
 
 This project provides a CLI for [Atomix 4].
 
-![Atomix CLI](https://media.giphy.com/media/cImqHbP1Bt2u5ZTVGg/giphy.gif)
+![Atomix CLI](https://media.giphy.com/media/7FOcFJePcfbjfgteg7/giphy.gif)
 
 ## Installation
 
