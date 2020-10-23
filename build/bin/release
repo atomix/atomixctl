@@ -13,39 +13,39 @@ github-release release \
     --pre-release
 
 github-release upload \
-    -user atomix \
+    --user atomix \
     --repo atomix-cli \
     --tag ${version} \
     --name "atomix-darwin-amd64" \
     --file bin/darwin/amd64/atomix
 
 github-release upload \
-    -user atomix \
+    --user atomix \
     --repo atomix-cli \
     --tag ${version} \
     --name "atomix-linux-386" \
     --file bin/linux/386/atomix
 
 github-release upload \
-    -user atomix \
+    --user atomix \
     --repo atomix-cli \
     --tag ${version} \
     --name "atomix-linux-amd64" \
     --file bin/linux/amd64/atomix
 
 github-release upload \
-    -user atomix \
+    --user atomix \
     --repo atomix-cli \
     --tag ${version} \
     --name "atomix-windows-386.exe" \
-    --file bin/windows/386/atomix
+    --file bin/windows/386/atomix.exe
 
 github-release upload \
-    -user atomix \
+    --user atomix \
     --repo atomix-cli \
     --tag ${version} \
     --name "atomix-windows-amd64.exe" \
-    --file bin/windows/amd64/atomix
+    --file bin/windows/amd64/atomix.exe
 
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
 VERSION=${version} make image
