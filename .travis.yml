@@ -1,5 +1,3 @@
-
-
 sudo: false
 
 language: go
@@ -8,7 +6,7 @@ go:
   - '1.13.x'
 
 services:
-  - docker
+  - 'docker'
 
 notifications:
   email: false
@@ -16,22 +14,23 @@ notifications:
 branches:
   only:
     - master
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 
 cache:
   directories:
     - $HOME/gopath/pkg/mod         # Cache the Go modules
 
-
 before_script:
+  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin latest
   - pushd .. && git clone https://github.com/onosproject/build-tools.git && popd
 
-jobs:
-  include:
-    - stage: docs build
-      if: type != pull_request
-      script:
-        - sh ../build-tools/build/travis/trigger-travis atomix docs master "`git rev-parse --short HEAD`" $TRAVIS_API_TOKEN
-    - stage: build
-      script:
-         - make build
-         - 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./build/bin/push-images; fi'
+deploy:
+  - provider: script
+    script: 'if [ "$TRAVIS_PULL_REQUEST" = "false" ]; then bash ./build/bin/push-images; fi'
+    on:
+      branch: master
+  - provider: script
+    script: ./build/bin/release $TRAVIS_TAG
+    on:
+      tags: true
+      all_branches: true
