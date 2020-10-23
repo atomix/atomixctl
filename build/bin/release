@@ -1,0 +1,52 @@
+#!/bin/bash
+
+version=$1
+
+VERSION=${version} make
+
+github-release release \
+    --user atomix \
+    --repo atomix-cli \
+    --tag ${version} \
+    --name ${version} \
+    --description "Atomix CLI release version ${version}" \
+    --pre-release
+
+github-release upload \
+    -user atomix \
+    --repo atomix-cli \
+    --tag ${version} \
+    --name "atomix-darwin-amd64" \
+    --file bin/darwin/amd64/atomix
+
+github-release upload \
+    -user atomix \
+    --repo atomix-cli \
+    --tag ${version} \
+    --name "atomix-linux-386" \
+    --file bin/linux/386/atomix
+
+github-release upload \
+    -user atomix \
+    --repo atomix-cli \
+    --tag ${version} \
+    --name "atomix-linux-amd64" \
+    --file bin/linux/amd64/atomix
+
+github-release upload \
+    -user atomix \
+    --repo atomix-cli \
+    --tag ${version} \
+    --name "atomix-windows-386.exe" \
+    --file bin/windows/386/atomix
+
+github-release upload \
+    -user atomix \
+    --repo atomix-cli \
+    --tag ${version} \
+    --name "atomix-windows-amd64.exe" \
+    --file bin/windows/amd64/atomix
+
+echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USER" --password-stdin
+VERSION=${version} make image
+VERSION=${version} make push

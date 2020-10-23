@@ -6,7 +6,7 @@ RUN addgroup -S atomix && adduser -S -G atomix atomix
 USER atomix
 WORKDIR /home/atomix
 
-ADD build/_output/bin/atomix /usr/local/bin/atomix
+ADD bin/linux/amd64/atomix /usr/local/bin/atomix
 
 RUN mkdir -p /home/atomix/.atomix && \
     echo "" >> /home/atomix/.atomix/config.yaml && \
