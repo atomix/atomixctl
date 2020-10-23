@@ -19,7 +19,6 @@ import (
 	"github.com/atomix/go-client/pkg/client/value"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	"os"
 )
 
 func newValueCommand() *cobra.Command {
@@ -35,7 +34,14 @@ func newValueCommand() *cobra.Command {
 				return cmd.Help()
 			}
 			if len(args) == 1 {
-				return runShell(cmd, fmt.Sprintf("value:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, []string{"value", name})
+				ctx := getContext()
+				if ctx == nil {
+					ctx = newContext("atomix", "value", name)
+					setContext(ctx)
+				} else {
+					ctx = ctx.withCommand("value", name)
+				}
+				return ctx.run()
 			}
 
 			// Get the command for the specified operation
@@ -48,8 +54,30 @@ func newValueCommand() *cobra.Command {
 				subCmd = newValueGetCommand(name)
 			case "watch":
 				subCmd = newValueWatchCommand(name)
-			case "-h", "--help":
-				return cmd.Help()
+			case "help", "-h", "--help":
+				if len(args) == 2 {
+					helpCmd := &cobra.Command{
+						Use:   fmt.Sprintf("value %s [...]", name),
+						Short: "Manage the state of a distributed value",
+					}
+					helpCmd.AddCommand(newValueSetCommand(name))
+					helpCmd.AddCommand(newValueGetCommand(name))
+					helpCmd.AddCommand(newValueWatchCommand(name))
+					return helpCmd.Help()
+				} else {
+					var helpCmd *cobra.Command
+					switch args[2] {
+					case "set":
+						helpCmd = newValueSetCommand(name)
+					case "get":
+						helpCmd = newValueGetCommand(name)
+					case "watch":
+						helpCmd = newValueWatchCommand(name)
+					default:
+						return fmt.Errorf("unknown command %s", args[2])
+					}
+					return helpCmd.Help()
+				}
 			default:
 				return fmt.Errorf("unknown command %s", op)
 			}

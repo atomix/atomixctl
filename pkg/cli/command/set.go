@@ -15,12 +15,10 @@
 package command
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/set"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	"os"
 )
 
 func newSetCommand() *cobra.Command {
@@ -36,7 +34,14 @@ func newSetCommand() *cobra.Command {
 				return cmd.Help()
 			}
 			if len(args) == 1 {
-				return runShell(cmd, fmt.Sprintf("set:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, []string{"set", name})
+				ctx := getContext()
+				if ctx == nil {
+					ctx = newContext("atomix", "set", name)
+					setContext(ctx)
+				} else {
+					ctx = ctx.withCommand("set", name)
+				}
+				return ctx.run()
 			}
 
 			// Get the command for the specified operation
@@ -57,8 +62,42 @@ func newSetCommand() *cobra.Command {
 				subCmd = newSetClearCommand(name)
 			case "watch":
 				subCmd = newSetWatchCommand(name)
-			case "-h", "--help":
-				return cmd.Help()
+			case "help", "-h", "--help":
+				if len(args) == 2 {
+					helpCmd := &cobra.Command{
+						Use:   fmt.Sprintf("set %s [...]", name),
+						Short: "Manage the state of a distributed set",
+					}
+					helpCmd.AddCommand(newSetAddCommand(name))
+					helpCmd.AddCommand(newSetContainsCommand(name))
+					helpCmd.AddCommand(newSetRemoveCommand(name))
+					helpCmd.AddCommand(newSetSizeCommand(name))
+					helpCmd.AddCommand(newSetElementsCommand(name))
+					helpCmd.AddCommand(newSetClearCommand(name))
+					helpCmd.AddCommand(newSetWatchCommand(name))
+					return helpCmd.Help()
+				} else {
+					var helpCmd *cobra.Command
+					switch args[2] {
+					case "add":
+						helpCmd = newSetAddCommand(name)
+					case "contains":
+						helpCmd = newSetContainsCommand(name)
+					case "remove":
+						helpCmd = newSetRemoveCommand(name)
+					case "size":
+						helpCmd = newSetSizeCommand(name)
+					case "elements":
+						helpCmd = newSetElementsCommand(name)
+					case "clear":
+						helpCmd = newSetClearCommand(name)
+					case "watch":
+						helpCmd = newSetWatchCommand(name)
+					default:
+						return fmt.Errorf("unknown command %s", args[2])
+					}
+					return helpCmd.Help()
+				}
 			default:
 				return fmt.Errorf("unknown command %s", op)
 			}
@@ -191,19 +230,13 @@ func newSetElementsCommand(name string) *cobra.Command {
 				return err
 			}
 
-			context := getContext()
-			if context.isShell {
-				var buf bytes.Buffer
-				for value := range ch {
-					buf.WriteString(value)
-					buf.WriteByte('\n')
-				}
-				return context.shellCtx.ShowPaged(buf.String())
+			lines := make([]interface{}, 0)
+			for value := range ch {
+				lines = append(lines, string(value))
 			}
 
-			for value := range ch {
-				cmd.Println(value)
-			}
+			context := getContext()
+			context.Printlns(lines...)
 			return nil
 		},
 	}

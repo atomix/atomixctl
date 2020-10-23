@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/counter"
 	"github.com/spf13/cobra"
-	"os"
 	"strconv"
 )
 
@@ -35,7 +34,14 @@ func newCounterCommand() *cobra.Command {
 				return cmd.Help()
 			}
 			if len(args) == 1 {
-				return runShell(cmd, fmt.Sprintf("counter:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, []string{"counter", name})
+				ctx := getContext()
+				if ctx == nil {
+					ctx = newContext("atomix", "counter", name)
+					setContext(ctx)
+				} else {
+					ctx = ctx.withCommand("counter", name)
+				}
+				return ctx.run()
 			}
 
 			// Get the command for the specified operation
@@ -50,8 +56,33 @@ func newCounterCommand() *cobra.Command {
 				subCmd = newCounterIncrementCommand(name)
 			case "decrement":
 				subCmd = newCounterDecrementCommand(name)
-			case "-h", "--help":
-				return cmd.Help()
+			case "help", "-h", "--help":
+				if len(args) == 2 {
+					helpCmd := &cobra.Command{
+						Use:   fmt.Sprintf("counter %s [...]", name),
+						Short: "Manage the state of a distributed counter",
+					}
+					helpCmd.AddCommand(newCounterGetCommand(name))
+					helpCmd.AddCommand(newCounterSetCommand(name))
+					helpCmd.AddCommand(newCounterIncrementCommand(name))
+					helpCmd.AddCommand(newCounterDecrementCommand(name))
+					return helpCmd.Help()
+				} else {
+					var helpCmd *cobra.Command
+					switch args[2] {
+					case "get":
+						helpCmd = newCounterGetCommand(name)
+					case "set":
+						helpCmd = newCounterSetCommand(name)
+					case "increment":
+						helpCmd = newCounterIncrementCommand(name)
+					case "decrement":
+						helpCmd = newCounterDecrementCommand(name)
+					default:
+						return fmt.Errorf("unknown command %s", args[2])
+					}
+					return helpCmd.Help()
+				}
 			default:
 				return fmt.Errorf("unknown command %s", op)
 			}

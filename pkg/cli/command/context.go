@@ -15,67 +15,164 @@
 package command
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/abiosoft/ishell"
-	"github.com/spf13/cobra"
+	"github.com/abiosoft/readline"
+	"io"
+	"os"
+	"strings"
 	"sync"
 )
 
-// commandContext is an Atomix command context
-type commandContext struct {
-	isRoot    bool
-	isShell   bool
-	shellName string
-	shellCmd  *cobra.Command
-	shellArgs []string
-	shell     *ishell.Shell
-	shellCtx  *ishell.Context
+var mgr = &shellContextManager{}
+
+type shellContextManager struct {
+	ctx *shellContext
+	mu  sync.RWMutex
 }
 
-var manager *contextManager
+func (m *shellContextManager) getContext() *shellContext {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.ctx
+}
 
-func init() {
-	manager = &contextManager{
-		context: &commandContext{
-			isRoot:    true,
-			shellName: "atomix",
-			shellArgs: []string{},
-		},
+func (m *shellContextManager) setContext(context *shellContext) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.ctx = context
+}
+
+func getContext() *shellContext {
+	return mgr.getContext()
+}
+
+func setContext(context *shellContext) {
+	mgr.setContext(context)
+}
+
+// newContext creates a new shell context
+func newContext(names ...string) *shellContext {
+	name := strings.Join(names, ":")
+	return &shellContext{
+		name:   name,
+		args:   []string{},
+		stdin:  os.Stdin,
+		stdout: os.Stdout,
+		stderr: os.Stderr,
 	}
 }
 
-func setContext(context commandContext) {
-	manager.setContext(context)
+// shellContext is a shell context
+type shellContext struct {
+	name    string
+	args    []string
+	stdin   io.ReadCloser
+	stdout  io.Writer
+	stderr  io.Writer
+	context *ishell.Context
+	parent  *shellContext
 }
 
-func setContextFunc(f func(context *commandContext)) {
-	manager.setContextFunc(f)
+func (c *shellContext) withCommand(names ...string) *shellContext {
+	name := strings.Join(append([]string{c.name}, names...), ":")
+	args := append(c.args, names...)
+	return &shellContext{
+		name:   name,
+		args:   args,
+		stdin:  c.stdin,
+		stdout: c.stdout,
+		stderr: c.stderr,
+		parent: c,
+	}
 }
 
-func getContext() commandContext {
-	return manager.getContext()
+func (c *shellContext) withContext(context *ishell.Context) *shellContext {
+	return &shellContext{
+		name:    c.name,
+		args:    c.args,
+		stdin:   c.stdin,
+		stdout:  c.stdout,
+		stderr:  c.stderr,
+		context: context,
+		parent:  c,
+	}
 }
 
-type contextManager struct {
-	context *commandContext
-	mu      sync.RWMutex
+func (c *shellContext) run(flags ...string) error {
+	args := append(c.args, flags...)
+	historyFile, err := getConfigFile("history.log")
+	if err != nil {
+		return err
+	}
+
+	shell := ishell.NewWithConfig(&readline.Config{
+		Prompt:      fmt.Sprintf("%s> ", c.name),
+		HistoryFile: historyFile,
+		Stdin:       c.stdin,
+		Stdout:      c.stdout,
+		Stderr:      c.stderr,
+	})
+
+	shell.NotFound(func(context *ishell.Context) {
+		setContext(c.withContext(context))
+		args := append(args, context.RawArgs...)
+		cmd := GetRootCommand()
+		cmd.SetArgs(args)
+		err := cmd.Execute()
+		if err != nil {
+			context.Println(err)
+		}
+		setContext(c)
+	})
+
+	shell.Interrupt(func(context *ishell.Context, count int, input string) {
+		if c.parent != nil {
+			context.Stop()
+		} else if count >= 2 {
+			context.Println("Interrupted")
+			os.Exit(1)
+		} else {
+			context.Println("Input Ctrl-c once more to exit")
+		}
+	})
+
+	shell.EOF(func(context *ishell.Context) {
+		context.Stop()
+	})
+
+	shell.DeleteCmd("help")
+
+	setContext(c)
+	shell.Run()
+	setContext(c.parent)
+	return nil
 }
 
-func (m *contextManager) setContext(context commandContext) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	m.context = &context
+func (c *shellContext) Print(values ...interface{}) {
+	fmt.Fprint(c.stdout, values...)
 }
 
-func (m *contextManager) setContextFunc(f func(context *commandContext)) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	context := *m.context
-	f(&context)
-	m.context = &context
+func (c *shellContext) Println(values ...interface{}) {
+	fmt.Fprintln(c.stdout, values...)
 }
 
-func (m *contextManager) getContext() commandContext {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	return *m.context
+func (c *shellContext) Printlns(lines ...interface{}) {
+	if c.context != nil {
+		buf := bytes.Buffer{}
+		for _, line := range lines {
+			buf.WriteString(fmt.Sprint(line))
+			buf.WriteByte('\n')
+		}
+		c.context.ShowPaged(buf.String())
+	} else {
+		for _, line := range lines {
+			c.Println(line)
+		}
+	}
+}
+
+func (c *shellContext) Printf(format string, args ...interface{}) {
+	fmt.Fprintf(c.stdout, format, args...)
 }

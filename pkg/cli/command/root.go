@@ -25,12 +25,23 @@ func GetRootCommand() *cobra.Command {
 		Short:                  "Atomix command line client",
 		BashCompletionFunction: bashCompletion,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runShell(cmd, "", os.Stdin, os.Stdout, os.Stderr, os.Args[1:])
+			ctx := getContext()
+			if ctx == nil {
+				ctx = newContext("atomix")
+				setContext(ctx)
+			}
+			return ctx.run(os.Args[1:]...)
 		},
 	}
 
 	addClientFlags(cmd)
 
+	cmd.AddCommand(&cobra.Command{
+		Use: "help",
+		RunE: func(_ *cobra.Command, _ []string) error {
+			return cmd.Help()
+		},
+	})
 	cmd.AddCommand(newCompletionCommand())
 	cmd.AddCommand(newConfigCommand())
 	cmd.AddCommand(newGetCommand())

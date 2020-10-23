@@ -15,12 +15,10 @@
 package command
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/log"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	"os"
 	"strconv"
 )
 
@@ -37,7 +35,14 @@ func newLogCommand() *cobra.Command {
 				return cmd.Help()
 			}
 			if len(args) == 1 {
-				return runShell(cmd, fmt.Sprintf("log:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, []string{"log", name})
+				ctx := getContext()
+				if ctx == nil {
+					ctx = newContext("atomix", "log", name)
+					setContext(ctx)
+				} else {
+					ctx = ctx.withCommand("log", name)
+				}
+				return ctx.run()
 			}
 
 			// Get the command for the specified operation
@@ -58,8 +63,42 @@ func newLogCommand() *cobra.Command {
 				subCmd = newLogClearCommand(name)
 			case "watch":
 				subCmd = newLogWatchCommand(name)
-			case "-h", "--help":
-				return cmd.Help()
+			case "help", "-h", "--help":
+				if len(args) == 2 {
+					helpCmd := &cobra.Command{
+						Use:   fmt.Sprintf("log %s [...]", name),
+						Short: "Manage the state of a distributed log",
+					}
+					helpCmd.AddCommand(newLogGetCommand(name))
+					helpCmd.AddCommand(newLogAppendCommand(name))
+					helpCmd.AddCommand(newLogRemoveCommand(name))
+					helpCmd.AddCommand(newLogEntriesCommand(name))
+					helpCmd.AddCommand(newLogSizeCommand(name))
+					helpCmd.AddCommand(newLogClearCommand(name))
+					helpCmd.AddCommand(newLogWatchCommand(name))
+					return helpCmd.Help()
+				} else {
+					var helpCmd *cobra.Command
+					switch args[2] {
+					case "get":
+						helpCmd = newLogGetCommand(name)
+					case "append":
+						helpCmd = newLogAppendCommand(name)
+					case "remove":
+						helpCmd = newLogRemoveCommand(name)
+					case "entries":
+						helpCmd = newLogEntriesCommand(name)
+					case "size":
+						helpCmd = newLogSizeCommand(name)
+					case "clear":
+						helpCmd = newLogClearCommand(name)
+					case "watch":
+						helpCmd = newLogWatchCommand(name)
+					default:
+						return fmt.Errorf("unknown command %s", args[2])
+					}
+					return helpCmd.Help()
+				}
 			default:
 				return fmt.Errorf("unknown command %s", op)
 			}
@@ -200,28 +239,16 @@ func newLogEntriesCommand(name string) *cobra.Command {
 			}
 
 			context := getContext()
-			if context.isShell {
-				var buf bytes.Buffer
-				for entry := range ch {
-					bytes, err := yaml.Marshal(entry)
-					if err != nil {
-						cmd.Println(err)
-					} else {
-						buf.Write(bytes)
-						buf.WriteByte('\n')
-					}
-				}
-				return context.shellCtx.ShowPaged(buf.String())
-			}
-
+			lines := make([]interface{}, 0)
 			for entry := range ch {
 				bytes, err := yaml.Marshal(entry)
 				if err != nil {
-					cmd.Println(err)
+					context.Println(err)
 				} else {
-					cmd.Println(string(bytes))
+					lines = append(lines, string(bytes))
 				}
 			}
+			context.Printlns(lines...)
 			return nil
 		},
 	}

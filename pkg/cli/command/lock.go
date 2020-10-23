@@ -36,7 +36,14 @@ func newLockCommand() *cobra.Command {
 				return cmd.Help()
 			}
 			if len(args) == 1 {
-				return runShell(cmd, fmt.Sprintf("lock:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, []string{"lock", name})
+				ctx := getContext()
+				if ctx == nil {
+					ctx = newContext("atomix", "lock", name)
+					setContext(ctx)
+				} else {
+					ctx = ctx.withCommand("lock", name)
+				}
+				return ctx.run()
 			}
 
 			// Get the command for the specified operation
@@ -47,8 +54,27 @@ func newLockCommand() *cobra.Command {
 				subCmd = newLockGetCommand(name)
 			case "lock":
 				subCmd = newLockLockCommand(name)
-			case "-h", "--help":
-				return cmd.Help()
+			case "help", "-h", "--help":
+				if len(args) == 2 {
+					helpCmd := &cobra.Command{
+						Use:   fmt.Sprintf("lock %s [...]", name),
+						Short: "Manage the state of a distributed lock",
+					}
+					helpCmd.AddCommand(newLockGetCommand(name))
+					helpCmd.AddCommand(newLockLockCommand(name))
+					return helpCmd.Help()
+				} else {
+					var helpCmd *cobra.Command
+					switch args[2] {
+					case "get":
+						helpCmd = newLockGetCommand(name)
+					case "lock":
+						helpCmd = newLockLockCommand(name)
+					default:
+						return fmt.Errorf("unknown command %s", args[2])
+					}
+					return helpCmd.Help()
+				}
 			default:
 				return fmt.Errorf("unknown command %s", op)
 			}

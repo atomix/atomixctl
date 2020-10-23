@@ -15,12 +15,10 @@
 package command
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/list"
 	"github.com/ghodss/yaml"
 	"github.com/spf13/cobra"
-	"os"
 	"strconv"
 )
 
@@ -37,7 +35,14 @@ func newListCommand() *cobra.Command {
 				return cmd.Help()
 			}
 			if len(args) == 1 {
-				return runShell(cmd, fmt.Sprintf("list:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, []string{"list", name})
+				ctx := getContext()
+				if ctx == nil {
+					ctx = newContext("atomix", "list", name)
+					setContext(ctx)
+				} else {
+					ctx = ctx.withCommand("list", name)
+				}
+				return ctx.run()
 			}
 
 			// Get the command for the specified operation
@@ -60,8 +65,45 @@ func newListCommand() *cobra.Command {
 				subCmd = newListClearCommand(name)
 			case "watch":
 				subCmd = newListWatchCommand(name)
-			case "-h", "--help":
-				return cmd.Help()
+			case "help", "-h", "--help":
+				if len(args) == 2 {
+					helpCmd := &cobra.Command{
+						Use:   fmt.Sprintf("list %s [...]", name),
+						Short: "Manage the state of a distributed list",
+					}
+					helpCmd.AddCommand(newListGetCommand(name))
+					helpCmd.AddCommand(newListAppendCommand(name))
+					helpCmd.AddCommand(newListInsertCommand(name))
+					helpCmd.AddCommand(newListRemoveCommand(name))
+					helpCmd.AddCommand(newListItemsCommand(name))
+					helpCmd.AddCommand(newListSizeCommand(name))
+					helpCmd.AddCommand(newListClearCommand(name))
+					helpCmd.AddCommand(newListWatchCommand(name))
+					return helpCmd.Help()
+				} else {
+					var helpCmd *cobra.Command
+					switch args[2] {
+					case "get":
+						helpCmd = newListGetCommand(name)
+					case "append":
+						helpCmd = newListAppendCommand(name)
+					case "insert":
+						helpCmd = newListInsertCommand(name)
+					case "remove":
+						helpCmd = newListRemoveCommand(name)
+					case "items":
+						helpCmd = newListItemsCommand(name)
+					case "size":
+						helpCmd = newListSizeCommand(name)
+					case "clear":
+						helpCmd = newListClearCommand(name)
+					case "watch":
+						helpCmd = newListWatchCommand(name)
+					default:
+						return fmt.Errorf("unknown command %s", args[2])
+					}
+					return helpCmd.Help()
+				}
 			default:
 				return fmt.Errorf("unknown command %s", op)
 			}
@@ -197,19 +239,13 @@ func newListItemsCommand(name string) *cobra.Command {
 				return err
 			}
 
-			context := getContext()
-			if context.isShell {
-				var buf bytes.Buffer
-				for value := range ch {
-					buf.Write(value)
-					buf.WriteByte('\n')
-				}
-				return context.shellCtx.ShowPaged(buf.String())
+			lines := make([]interface{}, 0)
+			for value := range ch {
+				lines = append(lines, string(value))
 			}
 
-			for value := range ch {
-				cmd.Println(string(value))
-			}
+			context := getContext()
+			context.Printlns(lines...)
 			return nil
 		},
 	}

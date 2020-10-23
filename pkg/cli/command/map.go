@@ -15,12 +15,10 @@
 package command
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/atomix/go-client/pkg/client/map"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	"os"
 )
 
 func newMapCommand() *cobra.Command {
@@ -36,7 +34,14 @@ func newMapCommand() *cobra.Command {
 				return cmd.Help()
 			}
 			if len(args) == 1 {
-				return runShell(cmd, fmt.Sprintf("map:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, []string{"map", name})
+				ctx := getContext()
+				if ctx == nil {
+					ctx = newContext("atomix", "map", name)
+					setContext(ctx)
+				} else {
+					ctx = ctx.withCommand("map", name)
+				}
+				return ctx.run()
 			}
 
 			// Get the command for the specified operation
@@ -59,8 +64,45 @@ func newMapCommand() *cobra.Command {
 				subCmd = newMapClearCommand(name)
 			case "watch":
 				subCmd = newMapWatchCommand(name)
-			case "-h", "--help":
-				return cmd.Help()
+			case "help", "-h", "--help":
+				if len(args) == 2 {
+					helpCmd := &cobra.Command{
+						Use:   fmt.Sprintf("map %s [...]", name),
+						Short: "Manage the state of a distributed map",
+					}
+					helpCmd.AddCommand(newMapGetCommand(name))
+					helpCmd.AddCommand(newMapPutCommand(name))
+					helpCmd.AddCommand(newMapRemoveCommand(name))
+					helpCmd.AddCommand(newMapKeysCommand(name))
+					helpCmd.AddCommand(newMapEntriesCommand(name))
+					helpCmd.AddCommand(newMapSizeCommand(name))
+					helpCmd.AddCommand(newMapClearCommand(name))
+					helpCmd.AddCommand(newMapWatchCommand(name))
+					return helpCmd.Help()
+				} else {
+					var helpCmd *cobra.Command
+					switch args[2] {
+					case "get":
+						helpCmd = newMapGetCommand(name)
+					case "put":
+						helpCmd = newMapPutCommand(name)
+					case "remove":
+						helpCmd = newMapRemoveCommand(name)
+					case "keys":
+						helpCmd = newMapKeysCommand(name)
+					case "entries":
+						helpCmd = newMapEntriesCommand(name)
+					case "size":
+						helpCmd = newMapSizeCommand(name)
+					case "clear":
+						helpCmd = newMapClearCommand(name)
+					case "watch":
+						helpCmd = newMapWatchCommand(name)
+					default:
+						return fmt.Errorf("unknown command %s", args[2])
+					}
+					return helpCmd.Help()
+				}
 			default:
 				return fmt.Errorf("unknown command %s", op)
 			}
@@ -269,28 +311,16 @@ func newMapEntriesCommand(name string) *cobra.Command {
 			}
 
 			context := getContext()
-			if context.isShell {
-				var buf bytes.Buffer
-				for entry := range ch {
-					bytes, err := yaml.Marshal(entry)
-					if err != nil {
-						cmd.Println(err)
-					} else {
-						buf.Write(bytes)
-						buf.WriteByte('\n')
-					}
-				}
-				return context.shellCtx.ShowPaged(buf.String())
-			}
-
+			lines := make([]interface{}, 0)
 			for entry := range ch {
 				bytes, err := yaml.Marshal(entry)
 				if err != nil {
-					cmd.Println(err)
+					context.Println(err)
 				} else {
-					cmd.Println(string(bytes))
+					lines = append(lines, string(bytes))
 				}
 			}
+			context.Printlns(lines...)
 			return nil
 		},
 	}

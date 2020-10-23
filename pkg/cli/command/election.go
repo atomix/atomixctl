@@ -19,7 +19,6 @@ import (
 	"github.com/atomix/go-client/pkg/client/election"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
-	"os"
 )
 
 func newElectionCommand() *cobra.Command {
@@ -35,7 +34,14 @@ func newElectionCommand() *cobra.Command {
 				return cmd.Help()
 			}
 			if len(args) == 1 {
-				return runShell(cmd, fmt.Sprintf("election:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, []string{"election", name})
+				ctx := getContext()
+				if ctx == nil {
+					ctx = newContext("atomix", "election", name)
+					setContext(ctx)
+				} else {
+					ctx = ctx.withCommand("election", name)
+				}
+				return ctx.run()
 			}
 
 			// Get the command for the specified operation
@@ -48,8 +54,30 @@ func newElectionCommand() *cobra.Command {
 				subCmd = newElectionGetCommand(name)
 			case "watch":
 				subCmd = newElectionWatchCommand(name)
-			case "-h", "--help":
-				return cmd.Help()
+			case "help", "-h", "--help":
+				if len(args) == 2 {
+					helpCmd := &cobra.Command{
+						Use:   fmt.Sprintf("election %s [...]", name),
+						Short: "Manage the state of a distributed leader election",
+					}
+					helpCmd.AddCommand(newElectionEnterCommand(name))
+					helpCmd.AddCommand(newElectionGetCommand(name))
+					helpCmd.AddCommand(newElectionWatchCommand(name))
+					return helpCmd.Help()
+				} else {
+					var helpCmd *cobra.Command
+					switch args[2] {
+					case "enter":
+						helpCmd = newElectionEnterCommand(name)
+					case "get":
+						helpCmd = newElectionGetCommand(name)
+					case "watch":
+						helpCmd = newElectionWatchCommand(name)
+					default:
+						return fmt.Errorf("unknown command %s", args[2])
+					}
+					return helpCmd.Help()
+				}
 			default:
 				return fmt.Errorf("unknown command %s", op)
 			}
