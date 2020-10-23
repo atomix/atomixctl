@@ -25,8 +25,10 @@ import (
 
 func runShell(cmd *cobra.Command, name string, stdin io.ReadCloser, stdout io.Writer, stderr io.Writer, args []string) error {
 	parentCtx := getContext()
-	if parentCtx.isShell {
+	if name != "" {
 		name = fmt.Sprintf("%s:%s", parentCtx.shellName, name)
+	} else {
+		name = parentCtx.shellName
 	}
 
 	historyFile, err := getConfigFile("history.log")
@@ -43,12 +45,14 @@ func runShell(cmd *cobra.Command, name string, stdin io.ReadCloser, stdout io.Wr
 	})
 
 	shell.NotFound(func(context *ishell.Context) {
+		args := append(args, context.RawArgs...)
 		setContextFunc(func(ctx *commandContext) {
 			ctx.isRoot = false
 			ctx.shellCtx = context
+			ctx.shellArgs = args
 		})
 		cmd := GetRootCommand()
-		cmd.SetArgs(append(args, context.RawArgs...))
+		cmd.SetArgs(args)
 		err := cmd.Execute()
 		if err != nil {
 			context.Println(err)
@@ -59,6 +63,7 @@ func runShell(cmd *cobra.Command, name string, stdin io.ReadCloser, stdout io.Wr
 		ctx.shellName = name
 		ctx.shell = shell
 		ctx.shellCmd = cmd
+		ctx.shellArgs = args
 	})
 	shell.Interrupt(func(context *ishell.Context, count int, input string) {
 		if parentCtx.isShell {

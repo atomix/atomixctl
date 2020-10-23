@@ -35,7 +35,7 @@ func newElectionCommand() *cobra.Command {
 				return cmd.Help()
 			}
 			if len(args) == 1 {
-				return runShell(cmd, fmt.Sprintf("election:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "election", name))
+				return runShell(cmd, fmt.Sprintf("election:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, []string{"election", name})
 			}
 
 			// Get the command for the specified operation

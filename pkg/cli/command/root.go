@@ -25,7 +25,7 @@ func GetRootCommand() *cobra.Command {
 		Short:                  "Atomix command line client",
 		BashCompletionFunction: bashCompletion,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runShell(cmd, "atomix", os.Stdin, os.Stdout, os.Stderr, os.Args[1:])
+			return runShell(cmd, "", os.Stdin, os.Stdout, os.Stderr, os.Args[1:])
 		},
 	}
 

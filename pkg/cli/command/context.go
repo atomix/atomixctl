@@ -26,6 +26,7 @@ type commandContext struct {
 	isShell   bool
 	shellName string
 	shellCmd  *cobra.Command
+	shellArgs []string
 	shell     *ishell.Shell
 	shellCtx  *ishell.Context
 }
@@ -35,7 +36,9 @@ var manager *contextManager
 func init() {
 	manager = &contextManager{
 		context: &commandContext{
-			isRoot: true,
+			isRoot:    true,
+			shellName: "atomix",
+			shellArgs: []string{},
 		},
 	}
 }

@@ -36,7 +36,7 @@ func newMapCommand() *cobra.Command {
 				return cmd.Help()
 			}
 			if len(args) == 1 {
-				return runShell(cmd, fmt.Sprintf("map:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, append(os.Args[1:], "map", name))
+				return runShell(cmd, fmt.Sprintf("map:%s", args[0]), os.Stdin, os.Stdout, os.Stderr, []string{"map", name})
 			}
 
 			// Get the command for the specified operation
