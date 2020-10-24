@@ -32,4 +32,3 @@ deploy:
     script: ./build/bin/release $TRAVIS_TAG
     on:
       tags: true
-      all_branches: true
