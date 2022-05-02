@@ -1,23 +1,20 @@
 module github.com/atomix/cli
 
-go 1.13
+go 1.18
 
 require (
-	github.com/abiosoft/ishell v2.0.0+incompatible
-	github.com/abiosoft/readline v0.0.0-20180607040430-155bce2042db
-	github.com/atomix/go-client v0.3.1
-	github.com/chzyer/logex v1.1.10 // indirect
-	github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1 // indirect
-	github.com/fatih/color v1.9.0 // indirect
-	github.com/flynn-archive/go-shlex v0.0.0-20150515145356-3f9db97f8568 // indirect
-	github.com/ghodss/yaml v1.0.0
-	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
-	github.com/magiconair/properties v1.8.1 // indirect
-	github.com/mitchellh/go-homedir v1.1.0
-	github.com/pelletier/go-toml v1.4.0 // indirect
-	github.com/spf13/afero v1.2.2 // indirect
-	github.com/spf13/cobra v0.0.4
-	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/viper v1.4.0
-	gopkg.in/yaml.v2 v2.2.2
+	github.com/atomix/runtime-api v0.0.1-0.20220427183824-648985f6edce
+	github.com/spf13/cobra v1.4.0
 )
+
+require (
+	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
+	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/kr/pretty v0.1.0 // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
+	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+)
+
+replace github.com/atomix/runtime-api => ../runtime-api

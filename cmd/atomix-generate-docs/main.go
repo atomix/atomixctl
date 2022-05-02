@@ -16,14 +16,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/atomix/cli/pkg/cli/command"
+	"github.com/atomix/cli/internal/atomix"
 	"github.com/spf13/cobra/doc"
 	"os"
 )
 
 func main() {
-	cmd := command.GetRootCommand()
-	err := doc.GenMarkdownTree(cmd, "docs/commands")
+	cmd := atomix.GetCommand()
+	err := doc.GenMarkdownTree(cmd, "docs/atomix")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

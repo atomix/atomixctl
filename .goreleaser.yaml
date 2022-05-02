@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2022-present Intel Corporation
+#
+# SPDX-License-Identifier: Apache-2.0
+
+before:
+  hooks:
+    - go mod tidy
+builds:
+  - id: atomix
+    main: ./cmd/atomix
+    gcflags:
+      - all=-trimpath={{.Env.GOPATH}}
+    ldflags:
+      - -s -w -X github.com/atomix/cli/internal/atomix/version.version={{ .Version }} -X github.com/atomix/cli/internal/atomix/version.commit={{ .Commit }}
+    env:
+      - CGO_ENABLED=1
+dockers:
+  - id: atomix-cli
+    dockerfile: build/docker/Dockerfile
+    ids:
+      - atomix
+    image_templates:
+      - atomix/cli:latest
+      - atomix/cli:{{ .Tag }}
+      - atomix/cli:v{{ .Major }}.{{ .Minor }}
+    extra_files:
+      - go.mod
+      - go.sum
+      - cmd/
+      - internal/
+snapshot:
+  name_template: "{{ incpatch .Version }}-dev"
+changelog:
+  sort: asc

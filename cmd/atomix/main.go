@@ -15,9 +15,13 @@
 package main
 
 import (
-	"github.com/atomix/cli/pkg/cli"
+	"github.com/atomix/cli/internal/atomix"
+	"os"
 )
 
 func main() {
-	cli.Execute()
+	cmd := atomix.GetCommand()
+	if err := cmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
