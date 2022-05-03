@@ -9,7 +9,7 @@ before:
 builds:
   - id: plugin
     main: ./cmd/{{ .Driver.Name | toKebab }}
-    binary: {{ .Driver.Name }}-{{ "{{ .Version }}" }}.{{ .Runtime.Version }}.so
+    binary: {{ .Driver.Name | toKebab }}-{{ "{{ .Version }}" }}.{{ .Runtime.Version }}.so
     goos:
       - linux
     goarch:
