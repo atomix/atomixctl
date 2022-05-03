@@ -9,7 +9,9 @@ import (
 	"github.com/atomix/cli/internal/exec"
 	"github.com/rogpeppe/go-internal/modfile"
 	"github.com/spf13/cobra"
+	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -45,7 +47,7 @@ func runCommand(cmd *cobra.Command, args []string) error {
 		path = dir
 	}
 
-	target, err := cmd.Flags().GetString("version")
+	version, err := cmd.Flags().GetString("version")
 	if err != nil {
 		return err
 	}
@@ -56,9 +58,9 @@ func runCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	if checkOnly {
-		fmt.Fprintf(cmd.OutOrStdout(), "Checking plugin module constraints against target API version %s\n", target)
+		fmt.Fprintf(cmd.OutOrStdout(), "Checking plugin module constraints against target API version %s\n", version)
 	} else {
-		fmt.Fprintf(cmd.OutOrStdout(), "Updating plugin module constraints for target API version %s\n", target)
+		fmt.Fprintf(cmd.OutOrStdout(), "Updating plugin module constraints for target API version %s\n", version)
 	}
 
 	err = exec.Run("go", exec.WithArgs("mod", "tidy"))
@@ -71,8 +73,9 @@ func runCommand(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	srcModFile := filepath.Join(rootPath, "go.mod")
-	srcModBytes, err := ioutil.ReadFile(srcModFile)
+	srcModPath := filepath.Join(rootPath, "go.mod")
+	fmt.Fprintf(cmd.OutOrStdout(), "Parsing %s", srcModPath)
+	srcModBytes, err := ioutil.ReadFile(srcModPath)
 	if err != nil {
 		return err
 	}
@@ -88,19 +91,32 @@ func runCommand(cmd *cobra.Command, args []string) error {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	tgtModFile := filepath.Join(tmpDir, "go.mod")
-	tgtModURL := fmt.Sprintf("https://raw.githubusercontent.com/atomix/runtime-api/%s/go.mod", target)
-	err = exec.Run("wget", exec.WithArgs("-LO", tgtModFile, tgtModURL))
+	tgtModURL := fmt.Sprintf("https://raw.githubusercontent.com/atomix/runtime-api/%s/go.mod", version)
+	fmt.Fprintf(cmd.OutOrStdout(), "Downloading go.mod for atomix/runtime-api %s from %s", version, tgtModURL)
+	resp, err := http.Get(tgtModURL)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	tgtModPath := filepath.Join(tmpDir, "go.mod")
+	tgtModFile, err := os.Create(tgtModPath)
+	if err != nil {
+		return err
+	}
+	defer tgtModFile.Close()
+
+	_, err = io.Copy(tgtModFile, resp.Body)
 	if err != nil {
 		return err
 	}
 
-	tgtModBytes, err := ioutil.ReadFile(tgtModFile)
+	tgtModBytes, err := ioutil.ReadFile(tgtModPath)
 	if err != nil {
 		return err
 	}
 
-	tgtMod, err := modfile.Parse(tgtModFile, tgtModBytes, nil)
+	tgtMod, err := modfile.Parse(tgtModPath, tgtModBytes, nil)
 	if err != nil {
 		return err
 	}
@@ -130,7 +146,7 @@ func runCommand(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(srcModFile, srcModBytes, 0755)
+	err = ioutil.WriteFile(srcModPath, srcModBytes, 0755)
 	if err != nil {
 		return err
 	}
