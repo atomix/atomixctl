@@ -17,19 +17,14 @@ builds:
       - -trimpath
     hooks:
       post:
-        - cmd: docker build -f build/docker/build-1.18-linux-amd64.Dockerfile -t atomix/build:1.18-linux-amd64 .
-          dir: .
-        - cmd: docker build -f build/docker/build-1.18-linux-arm64.Dockerfile -t atomix/build:1.18-linux-arm64 .
-          dir: .
-        - cmd: docker build -f build/docker/build-1.18-darwin-amd64.Dockerfile -t atomix/build:1.18-darwin-amd64 .
-          dir: .
-        - cmd: docker build -f build/docker/build-1.18-darwin-arm64.Dockerfile -t atomix/build:1.18-darwin-arm64 .
-          dir: .
+        - docker build -f build/docker/build-1.18-linux-amd64.Dockerfile -t atomix/build:1.18-linux-amd64 .
+        - docker build -f build/docker/build-1.18-linux-arm64.Dockerfile -t atomix/build:1.18-linux-arm64 .
+        - docker build -f build/docker/build-1.18-darwin-amd64.Dockerfile -t atomix/build:1.18-darwin-amd64 .
+        - docker build -f build/docker/build-1.18-darwin-arm64.Dockerfile -t atomix/build:1.18-darwin-arm64 .
   - id: atomix
     hooks:
       pre:
-        - cmd: docker run -i -v {{ abs "." }}:/build atomix/build:1.18-{{ .Os }}-{{ .Arch }} bin --version={{ .Version }} --commit={{ .Commit }} -o dist/atomix_{{ .Os }}_{{ .Arch }}/atomix ./cmd/atomix
-          dir: .
+        - docker run -i -v {{ abs "." }}:/build atomix/build:1.18-{{ .Os }}-{{ .Arch }} bin --version={{ .Version }} --commit={{ .Commit }} -o dist/atomix_{{ .Os }}_{{ .Arch }}/atomix ./cmd/atomix
     builder: prebuilt
     goos:
       - linux
