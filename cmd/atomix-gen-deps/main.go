@@ -50,7 +50,7 @@ func runCommand(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	checkOnly, err := cmd.Flags().GetBool("read-only")
+	checkOnly, err := cmd.Flags().GetBool("check")
 	if err != nil {
 		return err
 	}
