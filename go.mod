@@ -2,10 +2,7 @@ module github.com/atomix/cli
 
 go 1.18
 
-require (
-	github.com/atomix/runtime-api v0.0.1-0.20220427183824-648985f6edce
-	github.com/spf13/cobra v1.4.0
-)
+require github.com/spf13/cobra v1.4.0
 
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect

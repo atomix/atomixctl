@@ -7,24 +7,10 @@ before:
   hooks:
     - go mod tidy
 builds:
-  - id: atomix-build
-    main: ./cmd/atomix-build
-    goos:
-      - linux
-    goarch:
-      - amd64
-    flags:
-      - -trimpath
-    hooks:
-      post:
-        - docker build -f build/docker/build-1.18-linux-amd64.Dockerfile -t atomix/build:1.18-linux-amd64 .
-        - docker build -f build/docker/build-1.18-linux-arm64.Dockerfile -t atomix/build:1.18-linux-arm64 .
-        - docker build -f build/docker/build-1.18-darwin-amd64.Dockerfile -t atomix/build:1.18-darwin-amd64 .
-        - docker build -f build/docker/build-1.18-darwin-arm64.Dockerfile -t atomix/build:1.18-darwin-arm64 .
   - id: atomix
     hooks:
       pre:
-        - docker run -i -v {{ abs "." }}:/build atomix/build:1.18-{{ .Os }}-{{ .Arch }} bin --version={{ .Version }} --commit={{ .Commit }} -o dist/atomix_{{ .Os }}_{{ .Arch }}/atomix ./cmd/atomix
+        - docker run -i -v {{ abs "." }}:/build atomix/build:1.18-{{ .Os }}-{{ .Arch }} bin --version={{ .Version }} --commit={{ .Commit }} -o build/output/atomix_{{ .Os }}_{{ .Arch }} ./cmd/atomix
     builder: prebuilt
     goos:
       - linux
@@ -37,16 +23,18 @@ builds:
       - darwin_amd64
       - darwin_arm64
     prebuilt:
-      path: dist/atomix_{{ .Os }}_{{ .Arch }}/atomix
+      path: build/output/atomix_{{ .Os }}_{{ .Arch }}
 dockers:
   - id: atomix-cli
-    dockerfile: build/docker/atomix.Dockerfile
+    dockerfile: build/docker/Dockerfile
     ids:
       - atomix
     image_templates:
       - atomix/cli:latest
       - atomix/cli:{{ .Tag }}
       - atomix/cli:v{{ .Major }}.{{ .Minor }}
+    extra_files:
+      - build/output/atomix_linux_amd64
 snapshot:
   name_template: "{{ incpatch .Version }}-dev"
 changelog:
