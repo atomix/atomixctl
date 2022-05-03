@@ -43,7 +43,7 @@ func Run(name string, opts ...Option) error {
 		opt(&options)
 	}
 
-	println(strings.Join(append(options.Env, append([]string{name}, options.Args...)...), " "))
+	println(strings.Join(append([]string{name}, options.Args...), " "))
 	cmd := exec.Command(name, options.Args...)
 	cmd.Dir = options.Dir
 	cmd.Env = append(cmd.Env, options.Env...)

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/atomix/cli/internal/atomix"
+	"github.com/spf13/cobra"
 	"fmt"
 	"os"
 )
