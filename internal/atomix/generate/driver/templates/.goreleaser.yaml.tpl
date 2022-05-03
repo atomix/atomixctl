@@ -3,7 +3,7 @@ project_name: {{ .Driver.Name | toSnake }}
 before:
   hooks:
     - go mod tidy
-    - go run github.com/atomix/cli/cmd/atomix-gen-deps --version {{ .Runtime.Version }} .
+    - go run github.com/atomix/cli/cmd/atomix-gen-deps@v0.2.1 --version {{ .Runtime.Version }} .
     - go mod tidy
 
 builds:
