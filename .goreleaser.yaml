@@ -3,9 +3,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 project_name: atomix
+
 before:
   hooks:
     - go mod tidy
+
 builds:
   - id: atomix
     main: ./cmd/atomix
@@ -25,6 +27,7 @@ builds:
       - linux_amd64
       - darwin_amd64
       - darwin_arm64
+
 dockers:
   - id: atomix-cli
     dockerfile: build/docker/Dockerfile
@@ -36,7 +39,9 @@ dockers:
       - atomix/cli:v{{ .Major }}.{{ .Minor }}
     extra_files:
       - build/output/atomix_linux_amd64
+
 snapshot:
   name_template: "{{ incpatch .Version }}-dev"
+
 changelog:
   sort: asc
