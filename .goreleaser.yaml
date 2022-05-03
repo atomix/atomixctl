@@ -8,22 +8,23 @@ before:
     - go mod tidy
 builds:
   - id: atomix
-    hooks:
-      pre:
-        - docker run -i -v {{ abs "." }}:/build atomix/build:1.18-{{ .Os }}-{{ .Arch }} bin --version={{ .Version }} --commit={{ .Commit }} -o build/output/atomix_{{ .Os }}_{{ .Arch }} ./cmd/atomix
-    builder: prebuilt
+    main: ./cmd/atomix
     goos:
       - linux
       - darwin
     goarch:
       - amd64
       - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/atomix/cli/internal/atomix/version.version={{ .Version }} -X github.com/atomix/cli/internal/atomix/version.commit={{ .Commit }}
+    gcflags:
+      - all=-N -l
     targets:
       - linux_amd64
       - darwin_amd64
       - darwin_arm64
-    prebuilt:
-      path: build/output/atomix_{{ .Os }}_{{ .Arch }}
 dockers:
   - id: atomix-cli
     dockerfile: build/docker/Dockerfile
