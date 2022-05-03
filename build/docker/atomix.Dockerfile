@@ -2,15 +2,15 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM alpine:3.8
+FROM alpine:3.13
 
-RUN apk upgrade --update --no-cache && apk add bash bash-completion curl
+RUN apk upgrade --update --no-cache && apk add bash bash-completion curl libc6-compat
 RUN addgroup -S atomix && adduser -S -G atomix atomix
 
 USER atomix
 WORKDIR /home/atomix
 
-ADD dist/atomix_amd64 /usr/local/bin/atomix
+COPY atomix /usr/local/bin/atomix
 
 RUN mkdir -p /home/atomix/.atomix && \
     echo "" >> /home/atomix/.atomix/config.yaml && \

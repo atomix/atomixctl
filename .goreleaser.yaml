@@ -2,32 +2,56 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+project_name: atomix
 before:
   hooks:
     - go mod tidy
 builds:
+  - id: atomix-build
+    main: ./cmd/atomix-build
+    goos:
+      - linux
+    goarch:
+      - amd64
+    flags:
+      - -trimpath
+    hooks:
+      post:
+        - cmd: docker build -f build/docker/build-1.18-linux-amd64.Dockerfile -t atomix/build:1.18-linux-amd64 .
+          dir: .
+        - cmd: docker build -f build/docker/build-1.18-linux-arm64.Dockerfile -t atomix/build:1.18-linux-arm64 .
+          dir: .
+        - cmd: docker build -f build/docker/build-1.18-darwin-amd64.Dockerfile -t atomix/build:1.18-darwin-amd64 .
+          dir: .
+        - cmd: docker build -f build/docker/build-1.18-darwin-arm64.Dockerfile -t atomix/build:1.18-darwin-arm64 .
+          dir: .
   - id: atomix
-    main: ./cmd/atomix
-    gcflags:
-      - all=-trimpath={{.Env.GOPATH}}
-    ldflags:
-      - -s -w -X github.com/atomix/cli/internal/atomix/version.version={{ .Version }} -X github.com/atomix/cli/internal/atomix/version.commit={{ .Commit }}
-    env:
-      - CGO_ENABLED=1
+    hooks:
+      pre:
+        - cmd: docker run -it -v `pwd`:/build atomix/build:1.18-{{ .Os }}-{{ .Arch }} bin --version={{ .Version }} --commit={{ .Commit }} -o dist/atomix_{{ .Os }}_{{ .Arch }}/atomix ./cmd/atomix
+          dir: .
+    builder: prebuilt
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    targets:
+      - linux_amd64
+      - darwin_amd64
+      - darwin_arm64
+    prebuilt:
+      path: dist/atomix_{{ .Os }}_{{ .Arch }}/atomix
 dockers:
   - id: atomix-cli
-    dockerfile: build/docker/Dockerfile
+    dockerfile: build/docker/atomix.Dockerfile
     ids:
       - atomix
     image_templates:
       - atomix/cli:latest
       - atomix/cli:{{ .Tag }}
       - atomix/cli:v{{ .Major }}.{{ .Minor }}
-    extra_files:
-      - go.mod
-      - go.sum
-      - cmd/
-      - internal/
 snapshot:
   name_template: "{{ incpatch .Version }}-dev"
 changelog:

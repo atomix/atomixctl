@@ -5,7 +5,6 @@
 package build
 
 import (
-	"github.com/atomix/cli/internal/atomix/build/bin"
 	"github.com/atomix/cli/internal/atomix/build/plugin"
 	"github.com/spf13/cobra"
 )
@@ -14,8 +13,6 @@ func GetCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "build",
 	}
-	cmd.AddCommand(
-		bin.GetCommand(),
-		plugin.GetCommand())
+	cmd.AddCommand(plugin.GetCommand())
 	return cmd
 }

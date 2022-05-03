@@ -2,18 +2,22 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package bin
+package plugin
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/atomix/runtime-api/pkg/plugin"
+	"github.com/spf13/cobra"
+)
 
 func GetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "bin",
+		Use:  "plugin",
 		RunE: runCommand,
 	}
 	return cmd
 }
 
 func runCommand(cmd *cobra.Command, args []string) error {
+	var _ plugin.Repository
 	return nil
 }

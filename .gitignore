@@ -5,7 +5,7 @@
 *.so
 *.dylib
 .idea
-build/api
+build/output
 
 # Test binary, built with `go test -c`
 *.test
