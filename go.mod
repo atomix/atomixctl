@@ -3,7 +3,7 @@ module github.com/atomix/cli
 go 1.18
 
 require (
-	github.com/atomix/runtime-api v0.0.2-0.20220503194745-d99668d60f7f
+	github.com/atomix/runtime-api v0.0.2-0.20220503213245-ef3f8d28fa6d
 	github.com/iancoleman/strcase v0.2.0
 	github.com/rogpeppe/go-internal v1.8.1
 	github.com/spf13/cobra v1.4.0
