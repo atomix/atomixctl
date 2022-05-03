@@ -6,6 +6,7 @@ package driver
 
 import (
 	_ "embed"
+	"fmt"
 	"github.com/atomix/cli/internal/template"
 	"github.com/iancoleman/strcase"
 	"os"
@@ -74,7 +75,7 @@ func generate(dir string, context TemplateContext) error {
 		return err
 	}
 
-	cmdDir := filepath.Join(dir, "cmd", strcase.ToKebab(context.Driver.Name))
+	cmdDir := filepath.Join(dir, "cmd", fmt.Sprintf("%s-driver", strcase.ToKebab(context.Driver.Name)))
 	err = os.MkdirAll(cmdDir, 0755)
 	if err != nil {
 		return err
