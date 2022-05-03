@@ -18,8 +18,8 @@ func GetCommand() *cobra.Command {
 	}
 	cmd.Flags().StringP("name", "n", "", "the driver name")
 	cmd.Flags().StringP("version", "v", "", "the driver version")
-	cmd.Flags().StringP("api-version", "r", "", "the runtime API version for which to generate the driver")
-	cmd.Flags().StringP("registry-host", "h", "atomix-controller.kube-system", "the driver registry host")
+	cmd.Flags().String("api-version", "", "the runtime API version for which to generate the driver")
+	cmd.Flags().StringP("registry-host", "r", "atomix-controller.kube-system", "the driver registry host")
 	cmd.Flags().IntP("registry-port", "p", 5679, "the driver registry port")
 	_ = cmd.MarkFlagRequired("name")
 	_ = cmd.MarkFlagRequired("version")
