@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package generate
+package push
 
 import (
 	"github.com/atomix/cli/internal/atomix/push/driver"
