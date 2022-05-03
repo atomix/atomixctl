@@ -5,6 +5,7 @@
 package driver
 
 import (
+	"github.com/atomix/cli/internal/exec"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -18,6 +19,8 @@ func GetCommand() *cobra.Command {
 	cmd.Flags().StringP("name", "n", "", "the driver name")
 	cmd.Flags().StringP("module", "m", "", "the driver module path")
 	cmd.Flags().StringP("runtime", "r", "", "the runtime version for which to generate the driver")
+	_ = cmd.MarkFlagRequired("name")
+	_ = cmd.MarkFlagRequired("runtime")
 	return cmd
 }
 
@@ -51,5 +54,15 @@ func runCommand(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	}
-	return generate(dir, context)
+
+	err = generate(dir, context)
+	if err != nil {
+		return err
+	}
+
+	err = exec.Run("go", exec.WithEnv(os.Environ()...), exec.WithDir(dir), exec.WithArgs("mod", "tidy"))
+	if err != nil {
+		return err
+	}
+	return nil
 }

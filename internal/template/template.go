@@ -5,11 +5,28 @@
 package template
 
 import (
+	"github.com/iancoleman/strcase"
 	"path"
 	"reflect"
 	"strings"
 	"text/template"
 )
+
+var toCamelCase = func(value string) string {
+	return strcase.ToCamel(value)
+}
+
+var toLowerCamelCase = func(value string) string {
+	return strcase.ToLowerCamel(value)
+}
+
+var toKebabCase = func(value string) string {
+	return strcase.ToKebab(value)
+}
+
+var toSnakeCase = func(value string) string {
+	return strcase.ToSnake(value)
+}
 
 var toLowerCase = func(value string) string {
 	return strings.ToLower(value)
@@ -53,14 +70,18 @@ var ternary = func(v1, v2 interface{}, b bool) interface{} {
 func NewTemplate(name string, text string) *template.Template {
 	t := template.New(path.Base(name))
 	funcs := template.FuncMap{
-		"lower":      toLowerCase,
-		"upper":      toUpperCase,
-		"upperFirst": upperFirst,
-		"quote":      quote,
-		"isLast":     isLast,
-		"split":      split,
-		"trim":       trim,
-		"ternary":    ternary,
+		"toCamel":      toCamelCase,
+		"toLowerCamel": toLowerCamelCase,
+		"toKebab":      toKebabCase,
+		"toSnake":      toSnakeCase,
+		"lower":        toLowerCase,
+		"upper":        toUpperCase,
+		"upperFirst":   upperFirst,
+		"quote":        quote,
+		"isLast":       isLast,
+		"split":        split,
+		"trim":         trim,
+		"ternary":      ternary,
 		"include": func(name string, data interface{}) (string, error) {
 			var buf strings.Builder
 			err := t.ExecuteTemplate(&buf, name, data)

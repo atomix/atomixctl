@@ -7,11 +7,21 @@ package driver
 import (
 	_ "embed"
 	"github.com/atomix/cli/internal/template"
+	"github.com/iancoleman/strcase"
 	"os"
 	"path/filepath"
 )
 
 var (
+	//go:embed templates/.gitignore.tpl
+	gitIgnoreTemplate string
+
+	//go:embed templates/.goreleaser.yaml.tpl
+	goReleaserTemplate string
+
+	//go:embed templates/Makefile.tpl
+	makefileTemplate string
+
 	//go:embed templates/go.mod.tpl
 	goModTemplate string
 
@@ -38,17 +48,33 @@ type RuntimeContext struct {
 }
 
 func generate(dir string, context TemplateContext) error {
-	err := apply("go.mod", goModTemplate, filepath.Join(dir, "go.mod"), context)
+	err := apply(".gitignore", gitIgnoreTemplate, filepath.Join(dir, ".gitignore"), context)
 	if err != nil {
 		return err
 	}
 
-	err = os.MkdirAll(filepath.Join(dir, "cmd", context.Driver.Name), 0755)
+	err = apply(".goreleaser.yaml", goReleaserTemplate, filepath.Join(dir, ".goreleaser.yaml"), context)
 	if err != nil {
 		return err
 	}
 
-	err = apply("main.go", mainTemplate, filepath.Join(dir, "cmd", context.Driver.Name, "main.go"), context)
+	err = apply("Makefile", makefileTemplate, filepath.Join(dir, "Makefile"), context)
+	if err != nil {
+		return err
+	}
+
+	err = apply("go.mod", goModTemplate, filepath.Join(dir, "go.mod"), context)
+	if err != nil {
+		return err
+	}
+
+	cmdDir := filepath.Join(dir, "cmd", strcase.ToKebab(context.Driver.Name))
+	err = os.MkdirAll(cmdDir, 0755)
+	if err != nil {
+		return err
+	}
+
+	err = apply("main.go", mainTemplate, filepath.Join(cmdDir, "main.go"), context)
 	if err != nil {
 		return err
 	}
