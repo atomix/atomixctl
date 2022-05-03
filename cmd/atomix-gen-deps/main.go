@@ -74,7 +74,7 @@ func runCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	srcModPath := filepath.Join(rootPath, "go.mod")
-	fmt.Fprintf(cmd.OutOrStdout(), "Parsing %s", srcModPath)
+	fmt.Fprintf(cmd.OutOrStdout(), "Parsing %s\n", srcModPath)
 	srcModBytes, err := ioutil.ReadFile(srcModPath)
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func runCommand(cmd *cobra.Command, args []string) error {
 	defer os.RemoveAll(tmpDir)
 
 	tgtModURL := fmt.Sprintf("https://raw.githubusercontent.com/atomix/runtime-api/%s/go.mod", version)
-	fmt.Fprintf(cmd.OutOrStdout(), "Downloading go.mod for atomix/runtime-api %s from %s", version, tgtModURL)
+	fmt.Fprintf(cmd.OutOrStdout(), "Downloading go.mod for atomix/runtime-api %s from %s\n", version, tgtModURL)
 	resp, err := http.Get(tgtModURL)
 	if err != nil {
 		return err
