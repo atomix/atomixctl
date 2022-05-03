@@ -28,7 +28,7 @@ builds:
   - id: atomix
     hooks:
       pre:
-        - cmd: docker run -it -v `pwd`:/build atomix/build:1.18-{{ .Os }}-{{ .Arch }} bin --version={{ .Version }} --commit={{ .Commit }} -o dist/atomix_{{ .Os }}_{{ .Arch }}/atomix ./cmd/atomix
+        - cmd: docker run -i -v {{ abs "." }}:/build atomix/build:1.18-{{ .Os }}-{{ .Arch }} bin --version={{ .Version }} --commit={{ .Commit }} -o dist/atomix_{{ .Os }}_{{ .Arch }}/atomix ./cmd/atomix
           dir: .
     builder: prebuilt
     goos:
