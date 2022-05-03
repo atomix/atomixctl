@@ -8,13 +8,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/atomix/cli/pkg/version"
 	"github.com/spf13/cobra"
 	"strings"
-)
-
-var (
-	version string
-	commit  string
 )
 
 type Info struct {
@@ -45,8 +41,8 @@ func runCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	info := Info{
-		Version: version,
-		Commit:  commit,
+		Version: version.Version(),
+		Commit:  version.Commit(),
 	}
 
 	var bytes []byte
