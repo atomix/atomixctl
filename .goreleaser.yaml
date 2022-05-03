@@ -81,9 +81,9 @@ builds:
     main: ./cmd/atomix
     binary: atomix
     goos:
-      - linux
+      - windows
     goarch:
-      - arm64
+      - amd64
     env:
       - CC=x86_64-w64-mingw32-gcc
       - CXX=x86_64-w64-mingw32-g++
@@ -105,8 +105,21 @@ dockers:
       - atomix/cli:{{ .Tag }}
       - atomix/cli:v{{ .Major }}.{{ .Minor }}
 
+checksum:
+  name_template: 'checksums.txt'
+
 snapshot:
   name_template: "{{ incpatch .Version }}-dev"
 
 changelog:
   sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+
+release:
+  github:
+    owner: atomix
+    name: cli
+  prerelease: auto
+  draft: true
