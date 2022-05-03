@@ -5,13 +5,17 @@
 package main
 
 import (
+	"fmt"
 	"github.com/atomix/cli/internal/atomix"
+	"github.com/spf13/cobra/doc"
 	"os"
 )
 
 func main() {
 	cmd := atomix.GetCommand()
-	if err := cmd.Execute(); err != nil {
+	err := doc.GenMarkdownTree(cmd, "docs/atomix")
+	if err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
 }

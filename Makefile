@@ -29,7 +29,7 @@ release:
 		release --rm-dist
 
 docs:
-	go run github.com/atomix/cli/cmd/atomix-generate-docs
+	go run github.com/atomix/cli/cmd/atomix-gen-docs
 
 reuse-tool: # @HELP install reuse if not present
 	command -v reuse || python3 -m pip install reuse

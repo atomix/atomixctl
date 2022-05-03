@@ -1,20 +1,48 @@
 project_name: {{ .Driver.Name | toSnake }}
+
 before:
   hooks:
     - go mod tidy
+    - go run github.com/atomix/cli/cmd/atomix-gen-deps --version {{ .Runtime.Version }} .
+    - go mod tidy
+
 builds:
   - id: plugin
-    hooks:
-      pre:
-        - atomix build plugin --name {{ .Driver.Name }} --version={{ "{{ .Version }}" }} --target {{ .Runtime.Version }} --output build/{{ .Driver.Name }}-{{ "{{ .Version }}" }}.{{ .Runtime.Version }}.so ./cmd/{{ .Driver.Name | toKebab }}
-    builder: prebuilt
+    main: ./cmd/{{ .Driver.Name | toKebab }}
+    binary: {{ .Driver.Name }}-{{ "{{ .Version }}" }}.{{ .Runtime.Version }}.so
     goos:
       - linux
     goarch:
       - amd64
-    prebuilt:
-      path: build/{{ .Driver.Name }}-{{ "{{ .Version }}" }}.{{ .Runtime.Version }}.so
+    env:
+      - CC=gcc
+      - CXX=g++
+    flags:
+      - -buildmode=plugin
+      - -mod=readonly
+      - -trimpath
+    gcflags:
+      - all=-N -l
+    ldflags:
+      - -s -w -X ./cmd/{{ .Driver.Name | toKebab }}.version={{ "{{ .Version }}" }} -X ./cmd/{{ .Driver.Name | toKebab }}.commit={{ "{{ .Commit }}" }}
+
+checksum:
+  name_template: 'checksums.txt'
+
 snapshot:
   name_template: "{{ "{{ incpatch .Version }}" }}-dev"
+
 changelog:
   sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+
+{{- if .Repo.Name }}
+release:
+  github:
+    owner: {{ .Repo.Owner }}
+    name: {{ .Repo.Name }}
+  prerelease: auto
+  draft: true
+{{- end }}

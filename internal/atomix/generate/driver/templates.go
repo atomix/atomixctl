@@ -33,6 +33,7 @@ type TemplateContext struct {
 	Driver  DriverContext
 	Module  ModuleContext
 	Runtime RuntimeContext
+	Repo    RepoContext
 }
 
 type DriverContext struct {
@@ -45,6 +46,11 @@ type ModuleContext struct {
 
 type RuntimeContext struct {
 	Version string
+}
+
+type RepoContext struct {
+	Owner string
+	Name  string
 }
 
 func generate(dir string, context TemplateContext) error {

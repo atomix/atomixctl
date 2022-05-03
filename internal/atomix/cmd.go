@@ -5,7 +5,6 @@
 package atomix
 
 import (
-	"github.com/atomix/cli/internal/atomix/build"
 	"github.com/atomix/cli/internal/atomix/generate"
 	"github.com/atomix/cli/internal/atomix/version"
 	"github.com/spf13/cobra"
@@ -16,7 +15,6 @@ func GetCommand() *cobra.Command {
 		Use: "atomix",
 	}
 	cmd.AddCommand(
-		build.GetCommand(),
 		generate.GetCommand(),
 		version.GetCommand())
 	return cmd
