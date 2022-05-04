@@ -25,7 +25,10 @@ builds:
     gcflags:
       - all=-N -l
     ldflags:
-      - -s -w -X github.com/atomix/cli/pkg/atomix/version.version={{ .Version }} -X github.com/atomix/cli/pkg/atomix/version.commit={{ .Commit }}
+      - -s -w
+      - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
+      - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
+      - -X github.com/atomix/cli/pkg/version.version={{ .Version }}
   - id: darwin-arm64
     main: ./cmd/atomix
     binary: atomix
@@ -42,7 +45,10 @@ builds:
     gcflags:
       - all=-N -l
     ldflags:
-      - -s -w -X github.com/atomix/cli/pkg/atomix/version.version={{ .Version }} -X github.com/atomix/cli/pkg/atomix/version.commit={{ .Commit }}
+      - -s -w
+      - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
+      - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
+      - -X github.com/atomix/cli/pkg/version.version={{ .Version }}
   - id: linux-amd64
     main: ./cmd/atomix
     binary: atomix
@@ -59,7 +65,10 @@ builds:
     gcflags:
       - all=-N -l
     ldflags:
-      - -s -w -X github.com/atomix/cli/pkg/atomix/version.version={{ .Version }} -X github.com/atomix/cli/pkg/atomix/version.commit={{ .Commit }}
+      - -s -w
+      - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
+      - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
+      - -X github.com/atomix/cli/pkg/version.version={{ .Version }}
   - id: linux-arm64
     main: ./cmd/atomix
     binary: atomix
@@ -76,7 +85,10 @@ builds:
     gcflags:
       - all=-N -l
     ldflags:
-      - -s -w -X github.com/atomix/cli/pkg/atomix/version.version={{ .Version }} -X github.com/atomix/cli/pkg/atomix/version.commit={{ .Commit }}
+      - -s -w
+      - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
+      - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
+      - -X github.com/atomix/cli/pkg/version.version={{ .Version }}
   - id: windows-amd64
     main: ./cmd/atomix
     binary: atomix
@@ -93,7 +105,10 @@ builds:
     gcflags:
       - all=-N -l
     ldflags:
-      - -s -w -X github.com/atomix/cli/pkg/atomix/version.version={{ .Version }} -X github.com/atomix/cli/pkg/atomix/version.commit={{ .Commit }}
+      - -s -w
+      - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
+      - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
+      - -X github.com/atomix/cli/pkg/version.version={{ .Version }}
 
 dockers:
   - id: atomix-cli
@@ -101,15 +116,15 @@ dockers:
     ids:
       - linux-amd64
     image_templates:
-      - atomix/cli:latest
-      - atomix/cli:{{ .Tag }}
-      - atomix/cli:v{{ .Major }}.{{ .Minor }}
+      - "atomix/cli:latest"
+      - "{{ if (not .IsSnapshot) }}atomix/cli:{{ .Tag }}{{ end }}"
+      - "{{ if (not .IsSnapshot) }}atomix/cli:v{{ .Major }}.{{ .Minor }}{{ end }}"
 
 checksum:
   name_template: 'checksums.txt'
 
 snapshot:
-  name_template: "{{ incpatch .Version }}-dev"
+  name_template: "{{ incpatch .Version }}-{{.ShortCommit}}"
 
 changelog:
   sort: asc
