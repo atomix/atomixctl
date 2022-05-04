@@ -12,10 +12,4 @@ WORKDIR /home/atomix
 
 COPY atomix /usr/local/bin/atomix
 
-RUN mkdir -p /home/atomix/.atomix && \
-    echo "" >> /home/atomix/.atomix/config.yaml && \
-    cp /etc/profile /home/atomix/.bashrc && \
-    atomix completion bash > /home/atomix/.atomix/bash_completion.sh && \
-    echo "source /home/atomix/.atomix/bash_completion.sh" >> /home/atomix/.bashrc
-
 ENTRYPOINT ["/bin/bash"]
