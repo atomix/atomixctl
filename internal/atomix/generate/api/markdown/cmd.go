@@ -12,7 +12,7 @@ func GetCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "markdown",
 		Short:   "Generates Markdown documentation from Protobuf sources",
-		Example: "atomix generate api go --input ../api --pattern '**/*.proto' --output ./pkg --package github.com/my-user/my-repo",
+		Example: "atomix generate api markdown --input ../api --pattern '**/*.proto' --output ./docs",
 		Aliases: []string{"md"},
 		Args:    cobra.NoArgs,
 		RunE:    run,
