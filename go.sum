@@ -39,8 +39,10 @@ dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
-github.com/atomix/runtime-api v0.0.2-0.20220503213245-ef3f8d28fa6d h1:dXyoEDWmmNc+GMH7bxsaXcOgoSIWuk6HvRjYGeAFoek=
-github.com/atomix/runtime-api v0.0.2-0.20220503213245-ef3f8d28fa6d/go.mod h1:2jgWb05x76+MXDh8XEm1r8e054EEFRRd67b6Q6ekvmc=
+github.com/atomix/api v0.0.0-20220505075216-529093848791 h1:AFaDfx+hOo6MUyQGml/pI2FGmlxqhMLSHl0iiHPOQvo=
+github.com/atomix/api v0.0.0-20220505075216-529093848791/go.mod h1:RgzNCDenJFCJl4e1mBtwLQ/T//odCeXD0ACjUKENuQA=
+github.com/atomix/sdk v0.0.3-0.20220505081132-ddd46cf9c837 h1:5Ok4re9Y4CjpxRQjeizquQr+NsAof7/CBlEeHhVBwAQ=
+github.com/atomix/sdk v0.0.3-0.20220505081132-ddd46cf9c837/go.mod h1:tgCyUTR48+FqliHZvuaH/fYcEiygOM0+CGSR4GfrCDo=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
