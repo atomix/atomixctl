@@ -6,7 +6,6 @@ package driver
 
 import (
 	_ "embed"
-	"fmt"
 	"github.com/atomix/cli/internal/template"
 	"github.com/iancoleman/strcase"
 	"os"
@@ -26,8 +25,11 @@ var (
 	//go:embed templates/go.mod.tpl
 	goModTemplate string
 
-	//go:embed templates/main.go.tpl
-	mainTemplate string
+	//go:embed templates/driver.go.tpl
+	driverTemplate string
+
+	//go:embed templates/config.proto.tpl
+	configProtoTemplate string
 )
 
 type TemplateContext struct {
@@ -38,7 +40,8 @@ type TemplateContext struct {
 }
 
 type DriverContext struct {
-	Name string
+	Name       string
+	APIVersion string
 }
 
 type ModuleContext struct {
@@ -75,13 +78,24 @@ func generate(dir string, context TemplateContext) error {
 		return err
 	}
 
-	cmdDir := filepath.Join(dir, "cmd", fmt.Sprintf("%s-driver", strcase.ToKebab(context.Driver.Name)))
-	err = os.MkdirAll(cmdDir, 0755)
+	pluginDir := filepath.Join(dir, "driver", strcase.ToKebab(context.Driver.Name))
+	err = os.MkdirAll(pluginDir, 0755)
 	if err != nil {
 		return err
 	}
 
-	err = apply("main.go", mainTemplate, filepath.Join(cmdDir, "main.go"), context)
+	err = apply("driver.go", driverTemplate, filepath.Join(pluginDir, "driver.go"), context)
+	if err != nil {
+		return err
+	}
+
+	protoDir := filepath.Join(dir, "api", "atomix", "driver", strcase.ToKebab(context.Driver.Name), context.Driver.APIVersion)
+	err = os.MkdirAll(protoDir, 0755)
+	if err != nil {
+		return err
+	}
+
+	err = apply("config.proto", configProtoTemplate, filepath.Join(protoDir, "config.proto"), context)
 	if err != nil {
 		return err
 	}

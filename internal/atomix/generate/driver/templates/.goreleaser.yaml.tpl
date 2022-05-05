@@ -1,4 +1,4 @@
-project_name: {{ .Driver.Name | toSnake }}
+project_name: {{ .Driver.Name | toSnake }}_driver
 
 before:
   hooks:
@@ -24,7 +24,7 @@ builds:
     gcflags:
       - all=-N -l
     ldflags:
-      - -s -w -X ./cmd/{{ .Driver.Name | toKebab }}.version={{ "{{ .Version }}" }} -X ./cmd/{{ .Driver.Name | toKebab }}.commit={{ "{{ .Commit }}" }}
+      - -s -w -X ./plugin/{{ .Driver.Name | toKebab }}-driver.version={{ "{{ .Version }}" }} -X ./plugin/{{ .Driver.Name | toKebab }}-driver.commit={{ "{{ .Commit }}" }}
 
 checksum:
   name_template: 'checksums.txt'

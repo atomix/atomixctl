@@ -5,7 +5,7 @@
 package driver
 
 import (
-	"github.com/atomix/runtime-api/pkg/runtime/driver"
+	"github.com/atomix/sdk/pkg/runtime/driver"
 	"github.com/spf13/cobra"
 	"os"
 )

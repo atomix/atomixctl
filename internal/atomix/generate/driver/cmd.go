@@ -5,11 +5,10 @@
 package driver
 
 import (
-	"errors"
 	"github.com/atomix/cli/internal/exec"
+	"github.com/atomix/sdk/pkg/version"
 	"github.com/spf13/cobra"
 	"os"
-	"strings"
 )
 
 func GetCommand() *cobra.Command {
@@ -19,9 +18,10 @@ func GetCommand() *cobra.Command {
 		RunE: runCommand,
 	}
 	cmd.Flags().StringP("name", "n", "", "the driver name")
-	cmd.Flags().StringP("module", "m", "", "the driver module path")
-	cmd.Flags().StringP("api-version", "v", "", "the runtime API version for which to generate the driver")
-	cmd.Flags().StringP("repo", "r", "", "the GitHub repository to which to publish release artifacts")
+	cmd.Flags().StringP("api-version", "v", "", "the driver API version")
+	cmd.Flags().StringP("module-path", "p", "", "the driver module path")
+	cmd.Flags().String("github-owner", "", "the GitHub user to which to publish release artifacts")
+	cmd.Flags().String("github-repo", "", "the GitHub repo to which to publish release artifacts")
 	_ = cmd.MarkFlagRequired("name")
 	_ = cmd.MarkFlagRequired("module")
 	_ = cmd.MarkFlagRequired("api-version")
@@ -37,32 +37,31 @@ func runCommand(cmd *cobra.Command, args []string) error {
 	}
 	context.Driver.Name = name
 
-	path, err := cmd.Flags().GetString("module")
+	apiVersion, err := cmd.Flags().GetString("api-version")
+	if err != nil {
+		return err
+	}
+	context.Driver.APIVersion = apiVersion
+
+	path, err := cmd.Flags().GetString("module-path")
 	if err != nil {
 		return err
 	}
 	context.Module.Path = path
 
-	apiVersion, err := cmd.Flags().GetString("api-version")
+	context.Runtime.Version = version.Version()
+
+	repoOwner, err := cmd.Flags().GetString("github-owner")
 	if err != nil {
 		return err
 	}
-	context.Runtime.Version = apiVersion
+	context.Repo.Owner = repoOwner
 
-	repo, err := cmd.Flags().GetString("repo")
+	repoName, err := cmd.Flags().GetString("github-repo")
 	if err != nil {
 		return err
 	}
-
-	if repo != "" {
-		repoParts := strings.Split(repo, "/")
-		if len(repoParts) != 2 {
-			return errors.New("invalid repository format")
-		}
-		repoOwner, repoName := repoParts[0], repoParts[1]
-		context.Repo.Owner = repoOwner
-		context.Repo.Name = repoName
-	}
+	context.Repo.Name = repoName
 
 	var dir string
 	if len(args) == 1 {
