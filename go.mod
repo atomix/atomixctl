@@ -3,14 +3,14 @@ module github.com/atomix/cli
 go 1.18
 
 require (
-	github.com/atomix/sdk v0.0.3-0.20220505081132-ddd46cf9c837
+	github.com/atomix/sdk v0.0.3-0.20220507054207-6e09a9ff52a1
 	github.com/iancoleman/strcase v0.2.0
 	github.com/rogpeppe/go-internal v1.8.1
 	github.com/spf13/cobra v1.4.0
 )
 
 require (
-	github.com/atomix/api v0.0.0-20220505183852-f08fdaf84fbe // indirect
+	github.com/atomix/api v0.0.0-20220506074308-e4e4551768d4 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
@@ -18,7 +18,6 @@ require (
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
-	github.com/lyft/protoc-gen-star v0.6.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.4.3 // indirect
