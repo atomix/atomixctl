@@ -29,6 +29,7 @@ builds:
       - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
       - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
       - -X github.com/atomix/cli/pkg/version.version=v{{ .Version }}
+      - -X github.com/atomix/cli/pkg/version.buildType={{ if .IsSnapshot }}snapshot{{ else }}release{{ end }}
   - id: darwin-arm64
     main: ./cmd/atomix
     binary: atomix
@@ -49,6 +50,7 @@ builds:
       - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
       - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
       - -X github.com/atomix/cli/pkg/version.version=v{{ .Version }}
+      - -X github.com/atomix/cli/pkg/version.buildType={{ if .IsSnapshot }}snapshot{{ else }}release{{ end }}
   - id: linux-amd64
     main: ./cmd/atomix
     binary: atomix
@@ -69,6 +71,7 @@ builds:
       - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
       - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
       - -X github.com/atomix/cli/pkg/version.version=v{{ .Version }}
+      - -X github.com/atomix/cli/pkg/version.buildType={{ if .IsSnapshot }}snapshot{{ else }}release{{ end }}
   - id: linux-arm64
     main: ./cmd/atomix
     binary: atomix
@@ -89,6 +92,7 @@ builds:
       - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
       - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
       - -X github.com/atomix/cli/pkg/version.version=v{{ .Version }}
+      - -X github.com/atomix/cli/pkg/version.buildType={{ if .IsSnapshot }}snapshot{{ else }}release{{ end }}
   - id: windows-amd64
     main: ./cmd/atomix
     binary: atomix
@@ -109,6 +113,7 @@ builds:
       - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
       - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
       - -X github.com/atomix/cli/pkg/version.version=v{{ .Version }}
+      - -X github.com/atomix/cli/pkg/version.buildType={{ if .IsSnapshot }}snapshot{{ else }}release{{ end }}
   - id: docker
     main: ./cmd/atomix
     binary: atomix
@@ -130,6 +135,7 @@ builds:
       - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
       - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
       - -X github.com/atomix/cli/pkg/version.version=v{{ .Version }}
+      - -X github.com/atomix/cli/pkg/version.buildType={{ if .IsSnapshot }}snapshot{{ else }}release{{ end }}
   - id: protoc-gen-template
     main: ./cmd/protoc-gen-template
     binary: protoc-gen-template

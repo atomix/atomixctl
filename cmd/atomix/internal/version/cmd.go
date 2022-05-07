@@ -10,17 +10,20 @@ import (
 	"fmt"
 	"github.com/atomix/cli/pkg/version"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 	"strings"
 )
 
 type Info struct {
 	Version string `json:"version" yaml:"version"`
 	Commit  string `json:"commit" yaml:"commit"`
+	Type    string `json:"type" yaml:"type"`
 }
 
 func (i Info) String() string {
 	var lines []string
 	lines = append(lines, fmt.Sprintf("Version: %s", i.Version))
+	lines = append(lines, fmt.Sprintf("Type: %s", i.Type))
 	lines = append(lines, fmt.Sprintf("Commit: %s", i.Commit))
 	return strings.Join(lines, "\n")
 }
@@ -45,6 +48,12 @@ func runCommand(cmd *cobra.Command, args []string) error {
 		Commit:  version.Commit(),
 	}
 
+	if version.IsSnapshot() {
+		info.Type = "snapshot"
+	} else if version.IsRelease() {
+		info.Type = "release"
+	}
+
 	var bytes []byte
 	switch format {
 	case "json":
@@ -53,7 +62,7 @@ func runCommand(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	case "yaml":
-		bytes, err = json.Marshal(&info)
+		bytes, err = yaml.Marshal(&info)
 		if err != nil {
 			return err
 		}
@@ -63,6 +72,6 @@ func runCommand(cmd *cobra.Command, args []string) error {
 		return errors.New(fmt.Sprintf("unknown output format '%s'", format))
 	}
 
-	_, err = fmt.Fprintln(cmd.OutOrStdout(), bytes)
+	_, err = fmt.Fprintln(cmd.OutOrStdout(), string(bytes))
 	return err
 }

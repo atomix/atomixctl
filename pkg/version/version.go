@@ -9,7 +9,12 @@ import sdkversion "github.com/atomix/sdk/pkg/version"
 var (
 	version   string
 	commit    string
-	isRelease bool
+	buildType string
+)
+
+const (
+	snapshot = "snapshot"
+	release  = "release"
 )
 
 func Version() string {
@@ -24,6 +29,10 @@ func SDKVersion() string {
 	return sdkversion.Version()
 }
 
+func IsSnapshot() bool {
+	return buildType == snapshot
+}
+
 func IsRelease() bool {
-	return isRelease
+	return buildType == release
 }
