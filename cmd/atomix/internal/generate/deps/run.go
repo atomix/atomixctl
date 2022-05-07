@@ -1,8 +1,8 @@
-// SPDX-FileCopyrightText: 2022-present Intel Corporation
+// SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package main
+package deps
 
 import (
 	"fmt"
@@ -16,26 +16,7 @@ import (
 	"path/filepath"
 )
 
-func main() {
-	cmd := getCommand()
-	if err := cmd.Execute(); err != nil {
-		os.Exit(1)
-	}
-}
-
-func getCommand() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:  "plugin",
-		Args: cobra.MaximumNArgs(1),
-		RunE: runCommand,
-	}
-	cmd.Flags().BoolP("check", "c", false, "check module compatibility only")
-	cmd.Flags().StringP("version", "v", "", "the target runtime API version")
-	_ = cmd.MarkFlagRequired("target")
-	return cmd
-}
-
-func runCommand(cmd *cobra.Command, args []string) error {
+func run(cmd *cobra.Command, args []string) error {
 	var path string
 	if len(args) == 1 {
 		path = args[0]

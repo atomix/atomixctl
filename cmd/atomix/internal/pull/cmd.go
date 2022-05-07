@@ -5,7 +5,7 @@
 package pull
 
 import (
-	"github.com/atomix/cli/internal/atomix/pull/driver"
+	"github.com/atomix/cli/cmd/atomix/internal/pull/driver"
 	"github.com/spf13/cobra"
 )
 

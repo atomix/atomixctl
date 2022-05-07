@@ -5,9 +5,9 @@
 package generate
 
 import (
-	"github.com/atomix/cli/internal/atomix/generate/api"
-	"github.com/atomix/cli/internal/atomix/generate/client"
-	"github.com/atomix/cli/internal/atomix/generate/driver"
+	"github.com/atomix/cli/cmd/atomix/internal/generate/deps"
+	"github.com/atomix/cli/cmd/atomix/internal/generate/docs"
+	"github.com/atomix/cli/cmd/atomix/internal/generate/driver"
 	"github.com/spf13/cobra"
 )
 
@@ -16,8 +16,8 @@ func GetCommand() *cobra.Command {
 		Use:     "generate",
 		Aliases: []string{"gen"},
 	}
-	cmd.AddCommand(api.GetCommand())
-	cmd.AddCommand(client.GetCommand())
+	cmd.AddCommand(deps.GetCommand())
+	cmd.AddCommand(docs.GetCommand())
 	cmd.AddCommand(driver.GetCommand())
 	return cmd
 }

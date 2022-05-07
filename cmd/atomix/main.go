@@ -5,12 +5,12 @@
 package main
 
 import (
-	"github.com/atomix/cli/internal/atomix"
+	"github.com/atomix/cli/cmd/atomix/internal"
 	"os"
 )
 
 func main() {
-	cmd := atomix.GetCommand()
+	cmd := internal.GetCommand()
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
 	}

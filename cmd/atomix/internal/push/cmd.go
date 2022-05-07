@@ -5,7 +5,7 @@
 package push
 
 import (
-	"github.com/atomix/cli/internal/atomix/push/driver"
+	"github.com/atomix/cli/cmd/atomix/internal/push/driver"
 	"github.com/spf13/cobra"
 )
 
