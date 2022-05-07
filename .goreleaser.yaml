@@ -146,6 +146,14 @@ builds:
     gcflags:
       - all=-N -l
 
+archives:
+  - builds:
+      - darwin-amd64
+      - darwin-arm64
+      - linux-amd64
+      - linux-arm64
+      - windows-amd64
+
 dockers:
   - id: atomix-cli
     dockerfile: build/docker/Dockerfile
@@ -157,7 +165,7 @@ dockers:
       - "{{ if (not .IsSnapshot) }}atomix/cli:{{ .Tag }}{{ end }}"
       - "{{ if (not .IsSnapshot) }}atomix/cli:v{{ .Major }}.{{ .Minor }}{{ end }}"
     extra_files:
-      - build/docker/**
+      - build/docker/
 
 checksum:
   name_template: 'checksums.txt'
