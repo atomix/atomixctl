@@ -5,6 +5,7 @@
 package internal
 
 import (
+	"github.com/atomix/cli/cmd/atomix/internal/env"
 	"github.com/atomix/cli/cmd/atomix/internal/generate"
 	"github.com/atomix/cli/cmd/atomix/internal/pull"
 	"github.com/atomix/cli/cmd/atomix/internal/push"
@@ -12,12 +13,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func GetCommand() *cobra.Command {
+func GetCommand(env env.Environment) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "atomix",
 	}
 	cmd.AddCommand(
-		generate.GetCommand(),
+		generate.GetCommand(env),
 		pull.GetCommand(),
 		push.GetCommand(),
 		version.GetCommand())

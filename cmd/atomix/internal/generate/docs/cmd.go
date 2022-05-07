@@ -5,12 +5,14 @@
 package docs
 
 import (
+	"github.com/atomix/cli/cmd/atomix/internal/env"
 	"github.com/spf13/cobra"
 )
 
-func GetCommand() *cobra.Command {
+func GetCommand(_ env.Environment) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:  "docs",
+		Args: cobra.NoArgs,
 		RunE: run,
 	}
 	cmd.Flags().StringP("output", "o", ".", "the path to which to output the docs")

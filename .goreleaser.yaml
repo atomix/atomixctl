@@ -109,16 +109,55 @@ builds:
       - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
       - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
       - -X github.com/atomix/cli/pkg/version.version=v{{ .Version }}
+  - id: docker
+    main: ./cmd/atomix
+    binary: atomix
+    goos:
+      - linux
+    goarch:
+      - amd64
+    env:
+      - CC=gcc
+      - CXX=g++
+    flags:
+      - -mod=readonly
+      - -trimpath
+    gcflags:
+      - all=-N -l
+    ldflags:
+      - -s
+      - -X github.com/atomix/cli/cmd/atomix.environment=Docker
+      - -X github.com/atomix/cli/pkg/version.shortCommit={{ .ShortCommit }}
+      - -X github.com/atomix/cli/pkg/version.commit={{ .FullCommit }}
+      - -X github.com/atomix/cli/pkg/version.version=v{{ .Version }}
+  - id: protoc-gen-template
+    main: ./cmd/protoc-gen-template
+    binary: protoc-gen-template
+    goos:
+      - linux
+    goarch:
+      - amd64
+    env:
+      - CC=gcc
+      - CXX=g++
+    flags:
+      - -mod=readonly
+      - -trimpath
+    gcflags:
+      - all=-N -l
 
 dockers:
   - id: atomix-cli
     dockerfile: build/docker/Dockerfile
     ids:
-      - linux-amd64
+      - docker
+      - protoc-gen-template
     image_templates:
       - "atomix/cli:latest"
       - "{{ if (not .IsSnapshot) }}atomix/cli:{{ .Tag }}{{ end }}"
       - "{{ if (not .IsSnapshot) }}atomix/cli:v{{ .Major }}.{{ .Minor }}{{ end }}"
+    extra_files:
+      - build/docker/**
 
 checksum:
   name_template: 'checksums.txt'

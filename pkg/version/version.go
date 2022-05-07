@@ -4,9 +4,12 @@
 
 package version
 
+import sdkversion "github.com/atomix/sdk/pkg/version"
+
 var (
-	version string
-	commit  string
+	version   string
+	commit    string
+	isRelease bool
 )
 
 func Version() string {
@@ -15,4 +18,12 @@ func Version() string {
 
 func Commit() string {
 	return commit
+}
+
+func SDKVersion() string {
+	return sdkversion.Version()
+}
+
+func IsRelease() bool {
+	return isRelease
 }

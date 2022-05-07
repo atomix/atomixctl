@@ -6,7 +6,7 @@ package deps
 
 import (
 	"fmt"
-	"github.com/atomix/cli/internal/exec"
+	"github.com/atomix/cli/cmd/atomix/internal/exec"
 	"github.com/rogpeppe/go-internal/modfile"
 	"github.com/spf13/cobra"
 	"io"
@@ -16,7 +16,7 @@ import (
 	"path/filepath"
 )
 
-func run(cmd *cobra.Command, args []string) error {
+func runNative(cmd *cobra.Command, args []string) error {
 	var path string
 	if len(args) == 1 {
 		path = args[0]
@@ -44,7 +44,7 @@ func run(cmd *cobra.Command, args []string) error {
 		fmt.Fprintf(cmd.OutOrStdout(), "Updating plugin module constraints for target API version %s\n", version)
 	}
 
-	err = exec.Run("go", exec.WithArgs("mod", "tidy"))
+	err = exec.Run("go", "mod", "tidy")
 	if err != nil {
 		return err
 	}
@@ -132,4 +132,8 @@ func run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	return nil
+}
+
+func runInDocker(cmd *cobra.Command, args []string) error {
+	return exec.InDocker()
 }
