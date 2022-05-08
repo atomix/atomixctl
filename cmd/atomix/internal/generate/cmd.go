@@ -18,7 +18,7 @@ func GetCommand() *cobra.Command {
 		Aliases: []string{"gen"},
 	}
 
-	config, _ := config.Load()
+	config := config.Load()
 	for _, gen := range config.Generators {
 		cmd.AddCommand(getGeneratorCommand(gen))
 	}
