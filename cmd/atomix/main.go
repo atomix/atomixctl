@@ -6,14 +6,11 @@ package main
 
 import (
 	"github.com/atomix/cli/cmd/atomix/internal"
-	"github.com/atomix/cli/cmd/atomix/internal/env"
 	"os"
 )
 
-var environment env.Environment
-
 func main() {
-	cmd := internal.GetCommand(environment)
+	cmd := internal.GetCommand()
 	if err := cmd.Execute(); err != nil {
 		os.Exit(1)
 	}
