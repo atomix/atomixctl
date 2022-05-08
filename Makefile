@@ -10,7 +10,8 @@ build:
 	goreleaser release --snapshot --rm-dist
 
 docs:
-	go run github.com/atomix/cli/cmd/atomix-gen-docs
+	@find ./docs -name '*.md' -delete
+	go run github.com/atomix/cli/cmd/atomix gen-docs --markdown -o ./docs
 
 reuse-tool: # @HELP install reuse if not present
 	command -v reuse || python3 -m pip install reuse

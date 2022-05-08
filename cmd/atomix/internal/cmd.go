@@ -6,6 +6,7 @@ package internal
 
 import (
 	"github.com/atomix/cli/cmd/atomix/internal/config"
+	"github.com/atomix/cli/cmd/atomix/internal/docs"
 	"github.com/atomix/cli/cmd/atomix/internal/generate"
 	"github.com/atomix/cli/cmd/atomix/internal/pull"
 	"github.com/atomix/cli/cmd/atomix/internal/push"
@@ -19,6 +20,7 @@ func GetCommand() *cobra.Command {
 	}
 	cmd.AddCommand(
 		config.GetCommand(),
+		docs.GetCommand(),
 		generate.GetCommand(),
 		pull.GetCommand(),
 		push.GetCommand(),
