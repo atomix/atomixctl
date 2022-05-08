@@ -24,20 +24,20 @@ func Path() (string, error) {
 	return path, nil
 }
 
-func Load() (Config, error) {
+func Load() Config {
 	var config Config
 	path, err := Path()
 	if err != nil {
-		return config, err
+		return config
 	}
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		return config, err
+		return config
 	}
 	if err := yaml.Unmarshal(bytes, &config); err != nil {
-		return config, err
+		return config
 	}
-	return config, nil
+	return config
 }
 
 func Store(config Config) error {

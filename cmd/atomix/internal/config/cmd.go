@@ -15,7 +15,7 @@ func GetCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "config",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config, _ := Load()
+			config := Load()
 			bytes, err := yaml.Marshal(config)
 			if err != nil {
 				return err
@@ -50,10 +50,7 @@ func getAddGeneratorCommand() *cobra.Command {
 			}
 
 			// Load the configuration and add the generator configuration
-			config, err := Load()
-			if err != nil {
-				return err
-			}
+			config := Load()
 			config.Generators = append(config.Generators, GeneratorConfig{
 				Name:  name,
 				Image: image,
@@ -69,7 +66,7 @@ func getInitCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "init",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			config, _ := Load()
+			config := Load()
 			return Store(config)
 		},
 	}
