@@ -35,6 +35,7 @@ func getGeneratorCommand(generator config.GeneratorConfig) *cobra.Command {
 			}
 			return exec.Run("docker", append([]string{
 				"run",
+				"--rm",
 				"-i",
 				"-v",
 				fmt.Sprintf("%s:/build", dir),
