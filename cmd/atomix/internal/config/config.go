@@ -49,6 +49,10 @@ func Store(config Config) error {
 	if err != nil {
 		return err
 	}
+	err = os.MkdirAll(filepath.Dir(path), 0755)
+	if err != nil {
+		return err
+	}
 	return ioutil.WriteFile(path, bytes, 0755)
 }
 

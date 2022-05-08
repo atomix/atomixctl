@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	github.com/atomix/sdk v0.0.3-0.20220507054207-6e09a9ff52a1
-	github.com/iancoleman/strcase v0.2.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v1.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b

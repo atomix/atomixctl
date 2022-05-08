@@ -10,12 +10,9 @@ import (
 )
 
 func Run(command string, args ...string) error {
-	cmd := &exec.Cmd{
-		Path:   command,
-		Args:   args,
-		Env:    os.Environ(),
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-	}
+	cmd := exec.Command(command, args...)
+	cmd.Env = os.Environ()
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	return cmd.Run()
 }
