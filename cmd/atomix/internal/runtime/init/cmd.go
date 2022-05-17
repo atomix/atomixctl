@@ -2,17 +2,17 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package pull
+package init
 
 import (
-	"github.com/atomix/cli/cmd/atomix/internal/pull/driver"
 	"github.com/spf13/cobra"
 )
 
 func GetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "pull",
+		Use:  "init",
+		RunE: run,
 	}
-	cmd.AddCommand(driver.GetCommand())
+	cmd.Flags().Bool("headless", false, "run the runtime in headless mode")
 	return cmd
 }

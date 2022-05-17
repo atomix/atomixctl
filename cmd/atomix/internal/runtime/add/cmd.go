@@ -2,17 +2,20 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package push
+package add
 
 import (
-	"github.com/atomix/cli/cmd/atomix/internal/push/driver"
+	"github.com/atomix/cli/cmd/atomix/internal/runtime/add/atom"
+	"github.com/atomix/cli/cmd/atomix/internal/runtime/add/driver"
 	"github.com/spf13/cobra"
 )
 
 func GetCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "push",
+		Use: "add",
 	}
-	cmd.AddCommand(driver.GetCommand())
+	cmd.AddCommand(
+		atom.GetCommand(),
+		driver.GetCommand())
 	return cmd
 }

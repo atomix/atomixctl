@@ -4,8 +4,6 @@
 
 package version
 
-import sdkversion "github.com/atomix/sdk/pkg/version"
-
 var (
 	version   string
 	commit    string
@@ -23,10 +21,6 @@ func Version() string {
 
 func Commit() string {
 	return commit
-}
-
-func SDKVersion() string {
-	return sdkversion.Version()
 }
 
 func IsSnapshot() bool {
